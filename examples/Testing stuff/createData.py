@@ -10,7 +10,7 @@ def creaGig():
     tutto=[carN,carU,carG]
 
 
-    for j in range(4000):
+    for j in range(2000):
         i= random.randint(0,2)
 
         giganti.write(str(j)+" "+str(i+1)+" "+str(random.uniform(tutto[i][0][0],tutto[i][0][1]))+" "+str(random.uniform(tutto[i][1][0],tutto[i][1][1]))+" "+str(random.uniform(tutto[i][2][0],tutto[i][2][1]))+'\n')
