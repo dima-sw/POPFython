@@ -375,6 +375,7 @@ class SSupervisedPOPF(SupervisedOPF):
                 #print(tagli[i][0],tagli[i],0)
                 work.put((parti[i][0],parti[i][1], s))
 
+            #work.join() comunque devo aspettare i risultati
             # Aspetto i risultati parziali di ogni processo
             risultati = []
             for _ in range(tagli):
