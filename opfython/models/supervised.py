@@ -62,6 +62,8 @@ class SupervisedOPF(OPF):
         # Creating a list of prototype nodes
         prototypes = []
 
+        print(self.subgraph.nodes[4].pred)
+
         # While the heap is not empty
         while not h.is_empty():
             # Remove a node from the heap
@@ -69,6 +71,7 @@ class SupervisedOPF(OPF):
 
             # Gathers its cost from the heap
             self.subgraph.nodes[p].cost = h.cost[p]
+
 
             # And also its predecessor
             pred = self.subgraph.nodes[p].pred

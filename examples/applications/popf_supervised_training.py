@@ -35,3 +35,4 @@ if __name__ == '__main__':
     acc = g.opf_accuracy(Y_test, preds)
 
     print(f'Accuracy: {acc}')
+

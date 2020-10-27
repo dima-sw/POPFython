@@ -12,3 +12,4 @@ y = np.asarray([1, 2, 3, 1])
 dist = d.euclidean_distance(x, y)
 
 print(dist)
+
