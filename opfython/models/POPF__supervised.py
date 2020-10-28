@@ -152,12 +152,13 @@ class SSupervisedPOPF(SupervisedOPF):
             min = risultati[0]
 
             j = 0
-            # questo for serve per togliere un errore che non capita quasi mai!
-            for i in range(1, tagli):
-                if min[0] == -1 and risultati[i][0] != -1:
-                    min = risultati[i]
-                    j = i
-                    break
+            #vedo ci sta almeno 1 minimo
+            if min[0]==-1:
+                for i in range(1, tagli):
+                    if min[0] == -1 and risultati[i][0] != -1:
+                        min = risultati[i]
+                        j = i
+                        break
 
             # cerco il minimo se esiste
             for i in range(j, tagli):
