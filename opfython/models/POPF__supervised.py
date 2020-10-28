@@ -318,8 +318,6 @@ class SSupervisedPOPF(SupervisedOPF):
             # If node is not a prototype
             else:
                 # se non è un prototipo usato=0 cosot=MAX pred=quello che già stava nel label=nil
-                #partizione.append([0, c.FLOAT_MAX, self.subgraph.nodes[i].pred, ''])
-
                 U[i]=0
                 C[i]=c.FLOAT_MAX
                 P[i]=self.subgraph.nodes[i].pred
@@ -336,9 +334,7 @@ class SSupervisedPOPF(SupervisedOPF):
         self.creaProcFit(self.train,processi,P,C,L,U, work, result)
 
         """"###########################################################################################################################
-            ###########################################################################################################################
-            ###########################################################################################################################
-            ###########################################################################################################################   
+            
         """
 
 
