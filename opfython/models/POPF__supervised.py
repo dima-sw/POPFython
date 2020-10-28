@@ -310,8 +310,8 @@ class SSupervisedPOPF(SupervisedOPF):
 
             # If node is not a prototype
             else:
-                # se non è un prototipo usato=0 cosot=MAX pred=quello che già stava nel label=nil
-                #partizione.append([0, c.FLOAT_MAX, self.subgraph.nodes[i].pred, ''])
+                # se non è un prototipo usato=0 cosot=MAX pred=quello che già aveva nel label=nil
+               
 
                 U[i]=0
                 C[i]=c.FLOAT_MAX
@@ -388,12 +388,13 @@ class SSupervisedPOPF(SupervisedOPF):
             min = risultati[0]
 
             j = 0
-            # questo for serve per togliere un errore che non capita quasi mai!
-            for i in range(1, tagli):
-                if min[0] == -1 and risultati[i][0] != -1:
-                    min = risultati[i]
-                    j = i
-                    break
+            #vedo se ci sta almeno 1 minimo
+            if min[0]==-1:
+                for i in range(1, tagli):
+                    if min[0] == -1 and risultati[i][0] != -1:
+                        min = risultati[i]
+                        j = i
+                        break
 
             # cerco il minimo se esiste
             for i in range(j, tagli):
@@ -402,12 +403,9 @@ class SSupervisedPOPF(SupervisedOPF):
             # prendo il minimo
             s = min[0]
 
-            # s=-1 significa che ho computato tutti i nodi altrimenti aggiorno il costo di s
-            #if s != -1:
-                #partizione[s][1] = min[1]
 
 
-
+            #serve per visualizzare a che % siamo e quanto tempo manca per il completamento
             percnew = (percent / self.subgraph.n_nodes) * 100
 
             if (percnew > percOld):
@@ -426,9 +424,6 @@ class SSupervisedPOPF(SupervisedOPF):
 
 
         # aggiorno pred e label dei nodi
-        """Purtroppo questa operazione è neccessaria perché non si può mandare ai processi oggetti per riferimento O((n^2/m)+n).
-           Si potrebbe usare il BaseManager e non avere il +n finale però avendo già precedentemente implementato lo stesso codice con il BaseManager l'efficienza senza
-           è nettamente superiore che con, in termini di velocità."""
         for j in range(0,self.subgraph.n_nodes):
             self.subgraph.nodes[j].pred = P[j]
             self.subgraph.nodes[j].predicted_label = L[j]
