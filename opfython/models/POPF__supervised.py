@@ -46,6 +46,45 @@ class SSupervisedPOPF(SupervisedOPF):
 
         logger.info('Class overrided.')
 
+    def creaProcFit(self,target,processi,*args):
+
+        for i in range(self._processi):
+            processi.append(Process(target=target, args=(args)))
+            processi[i].daemon = True
+            processi[i].start()
+
+    def creaTagli(self,tagli,parti):
+        for i in range(tagli):
+            if i == 0:
+                r1 = 0
+            else:
+                r1 = i * int((self.subgraph.n_nodes / tagli))
+            if i == tagli - 1:
+                r2 = self.subgraph.n_nodes
+            else:
+                r2 = int(r1 + (self.subgraph.n_nodes / tagli))
+
+            parti.append((r1,r2))
+
+    def calcMin(self,risultati,tagli):
+        min = risultati[0]
+
+        j = 0
+        #Vedo se ci sta almeno un minimo
+        if min[0] == -1:
+            for i in range(1, tagli):
+                if min[0] == -1 and risultati[i][0] != -1:
+                    min = risultati[i]
+                    j = i
+                    break
+
+        # cerco il minimo se esiste
+        for i in range(j, tagli):
+            if min[1] > risultati[i][1] and risultati[i][0] != -1:
+                min = risultati[i]
+
+        return min[0]
+
     def _find_prototypes(self,tagli):
         """Find prototype nodes using the Minimum Spanning Tree (MST) approach.
 
@@ -143,29 +182,14 @@ class SSupervisedPOPF(SupervisedOPF):
                 # print(tagli[i][0],tagli[i],0)
                 work.put((parti[i][0], parti[i][1], p))
 
-
+            #work.join() comunque devo aspettare i risultati
             # Aspetto i risultati parziali di ogni processo
             risultati = []
             for _ in range(tagli):
                 risultati.append(result.get())
 
-            min = risultati[0]
-
-            j = 0
-            #vedo ci sta almeno 1 minimo
-            if min[0]==-1:
-                for i in range(1, tagli):
-                    if min[0] == -1 and risultati[i][0] != -1:
-                        min = risultati[i]
-                        j = i
-                        break
-
-            # cerco il minimo se esiste
-            for i in range(j, tagli):
-                if min[1] > risultati[i][1] and risultati[i][0] != -1:
-                    min = risultati[i]
             # prendo il minimo
-            p = min[0]
+            p = self.calcMin(risultati,tagli)
 
             percnew = (percent / self.subgraph.n_nodes) * 100
 
@@ -236,25 +260,7 @@ class SSupervisedPOPF(SupervisedOPF):
 
 
 
-    def creaProcFit(self,target,processi,*args):
 
-        for i in range(self._processi):
-            processi.append(Process(target=target, args=(args)))
-            processi[i].daemon = True
-            processi[i].start()
-
-    def creaTagli(self,tagli,parti):
-        for i in range(tagli):
-            if i == 0:
-                r1 = 0
-            else:
-                r1 = i * int((self.subgraph.n_nodes / tagli))
-            if i == tagli - 1:
-                r2 = self.subgraph.n_nodes
-            else:
-                r2 = int(r1 + (self.subgraph.n_nodes / tagli))
-
-            parti.append((r1,r2))
 
 
     def fit(self, X_train, Y_train,tagli, I_train=None):
@@ -311,8 +317,8 @@ class SSupervisedPOPF(SupervisedOPF):
 
             # If node is not a prototype
             else:
-                # se non è un prototipo usato=0 cosot=MAX pred=quello che già aveva nel label=nil
-               
+                # se non è un prototipo usato=0 cosot=MAX pred=quello che già stava nel label=nil
+                #partizione.append([0, c.FLOAT_MAX, self.subgraph.nodes[i].pred, ''])
 
                 U[i]=0
                 C[i]=c.FLOAT_MAX
@@ -382,31 +388,13 @@ class SSupervisedPOPF(SupervisedOPF):
             for _ in range(tagli):
                 risultati.append(result.get())
 
-
-
-            # ora devo prendere il minimo in termini di costo dei risultati parziali
-            # min --> (index, costo)
-            min = risultati[0]
-
-            j = 0
-            #vedo se ci sta almeno 1 minimo
-            if min[0]==-1:
-                for i in range(1, tagli):
-                    if min[0] == -1 and risultati[i][0] != -1:
-                        min = risultati[i]
-                        j = i
-                        break
-
-            # cerco il minimo se esiste
-            for i in range(j, tagli):
-                if min[1] > risultati[i][1] and risultati[i][0] != -1:
-                    min = risultati[i]
             # prendo il minimo
-            s = min[0]
+            s = self.calcMin(risultati,tagli)
+
+            
 
 
-
-            #serve per visualizzare a che % siamo e quanto tempo manca per il completamento
+            #Tengo traccia a che punto sta, per file grossi è comodo
             percnew = (percent / self.subgraph.n_nodes) * 100
 
             if (percnew > percOld):
