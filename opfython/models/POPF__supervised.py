@@ -456,7 +456,7 @@ class SSupervisedPOPF(SupervisedOPF):
 
 
 
-            U[s]=1
+            #U[s]=1
 
             # s1 dovrà essere il nodo non usato con il costo più piccolo
             s1 = None
