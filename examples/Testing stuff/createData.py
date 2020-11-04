@@ -3,21 +3,20 @@ import random
 def creaGig():
     giganti=open("../../data/nug.txt", "w")
     #altezza, età, peso,
-    carU=[(140,200),(0,80),(30,100)]
-    carG = [(200, 500), (0, 200), (80, 500)]
-    carN = [(5, 140), (0, 20), (1, 40)]
+    carU=[(150,190),(19,50),(55,90)]
+    carG = [(145, 175), (51, 120), (45, 70)]
+    carN = [(44, 128), (0, 11), (6, 24)]
+    carR=[(126, 180), (11, 18), (26, 87)]
+    tutto=[carN,carR,carU,carG]
 
-    tutto=[carN,carU,carG]
 
 
-<<<<<<< HEAD:examples/Testing stuff/createData.py
-    for j in range(5000):
-=======
-    for j in range(2000):
->>>>>>> 7b3b242eb904dd7f22262c8dc54b8708b8089cfd:examples/createData.py
-        i= random.randint(0,2)
+    for j in range(10000):
+        #for j in range(2000):
 
-        giganti.write(str(j)+" "+str(i+1)+" "+str(random.uniform(tutto[i][0][0],tutto[i][0][1]))+" "+str(random.uniform(tutto[i][1][0],tutto[i][1][1]))+" "+str(random.uniform(tutto[i][2][0],tutto[i][2][1]))+'\n')
+            i= random.randint(0,3)
+
+            giganti.write(str(j)+" "+str(i+1)+" "+str(random.uniform(tutto[i][0][0],tutto[i][0][1]))+" "+str(random.uniform(tutto[i][1][0],tutto[i][1][1]))+" "+str(random.uniform(tutto[i][2][0],tutto[i][2][1]))+'\n')
 
     giganti.close()
 

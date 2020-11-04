@@ -13,6 +13,7 @@ import opfython.utils.exception as e
 import opfython.utils.logging as log
 from opfython.core import OPF, Heap, Subgraph
 
+
 logger = log.get_logger(__name__)
 
 
@@ -62,7 +63,7 @@ class SupervisedOPF(OPF):
         # Creating a list of prototype nodes
         prototypes = []
 
-        print(self.subgraph.nodes[4].pred)
+
 
         # While the heap is not empty
         while not h.is_empty():

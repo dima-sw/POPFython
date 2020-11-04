@@ -1,11 +1,13 @@
 """Node structure that belongs to the Optimum-Path Forest.
 """
+import ctypes
 
 import numpy as np
 
 import opfython.utils.constants as c
 import opfython.utils.exception as e
 import opfython.utils.logging as l
+from multiprocessing import Value
 
 logger = l.get_logger(__name__)
 
@@ -100,7 +102,10 @@ class Node:
 
             raise e.ValueError('`label` should be >= 1')
 
-        self._label = label
+        self._label = Value('i',0,lock=False)
+
+        self._label=label
+
 
     @property
     def predicted_label(self):
@@ -114,11 +119,13 @@ class Node:
     def predicted_label(self, predicted_label):
 
         if not isinstance(predicted_label, int):
+
             raise e.TypeError('`predicted_label` should be an integer')
         if predicted_label < 0:
             raise e.ValueError('`predicted_label` should be >= 0')
 
-        self._predicted_label = predicted_label
+        self._predicted_label = Value(ctypes.c_int,0,lock=False)
+        self._predicted_label=predicted_label
 
     @property
     def cluster_label(self):
@@ -165,7 +172,7 @@ class Node:
         if not isinstance(cost, (float, int, np.int32, np.int64)):
             raise e.TypeError('`cost` should be a float or integer')
 
-        self._cost = cost
+        self._cost = Value('f',cost,lock=False)
 
     @property
     def density(self):
@@ -277,7 +284,8 @@ class Node:
             raise e.ValueError(
                 '`pred` should have a value larger than `NIL`, e.g., -1')
 
-        self._pred = pred
+        self._pred = Value('i',0,lock=False)
+        self._pred=pred
 
     @property
     def relevant(self):

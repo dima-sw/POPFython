@@ -4,9 +4,11 @@ import opfython.stream.parser as p
 import opfython.stream.splitter as s
 from opfython.models.POPF__supervised import SSupervisedPOPF
 import multiprocessing as mp
+
+
 if __name__ == '__main__':
     # Loading a .txt file to a numpy array
-    txt = l.load_txt('/home/dima/Desktop/opfython-master/data/nug.txt')
+    txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
 
     # Parsing a pre-loaded numpy array
     X, Y = p.parse_loader(txt)
@@ -24,11 +26,20 @@ if __name__ == '__main__':
 
 
 
+    """min=None
+    temp=None
+    for i in range(2,mp.cpu_count()*3):
+        # Fits training data into the classifier
+        time=opf.fit(X_train, Y_train,i)
 
-    # Fits training data into the classifier
-    opf.fit(X_train, Y_train,8)
+        if temp==None or temp>time:
+            min=i
+            temp=time
+            print(temp)
 
+    print(min,temp)"""
 
+    opf.fit(X_train, Y_train, 6)
 
 
 

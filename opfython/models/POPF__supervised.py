@@ -1,17 +1,16 @@
 """Supervised Optimum-Path Forest.
 """
 
-import copy
+
 import time
 
 import numpy as np
 
-import opfython.math.general as g
-import opfython.math.random as r
+
 import opfython.utils.constants as c
-import opfython.utils.exception as e
+
 import opfython.utils.logging as log
-from opfython.core import OPF, Heap, Subgraph
+from opfython.core import  Subgraph
 from opfython.models import SupervisedOPF
 
 from multiprocessing import JoinableQueue, Process, Queue, Array
@@ -213,7 +212,7 @@ class SSupervisedPOPF(SupervisedOPF):
         fittime = end - start
         logger.debug('Prototypes: %s.', prototypes)
         logger.info('Prototypes found in: %s seconds.', fittime)
-
+        return fittime
 
     def protParal(self,P, C, U, work, result):
 
@@ -281,7 +280,7 @@ class SSupervisedPOPF(SupervisedOPF):
         self.subgraph = Subgraph(X_train, Y_train, I=I_train)
 
         # Finding prototypes
-        self._find_prototypes(tagli)
+        tt=self._find_prototypes(tagli)
 
         start = time.time()
 
@@ -424,6 +423,7 @@ class SSupervisedPOPF(SupervisedOPF):
 
         logger.info('Classifier has been fitted.')
         logger.info('Training time: %s seconds.', train_time)
+        return train_time+tt
 
 
     def train(self, P,C,L,U, work, result):
