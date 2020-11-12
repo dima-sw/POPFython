@@ -480,6 +480,7 @@ class SupervisedOPF(OPF):
         # Fits training data into the classifier
         self.fit(X_train, Y_train)
 
+
         # Predicts new data
         self.predict(X_val)
 
@@ -495,7 +496,9 @@ class SupervisedOPF(OPF):
 
             # Removing irrelevant nodes
             for j, n in enumerate(self.subgraph.nodes):
+
                 if n.relevant != c.IRRELEVANT:
+
                     X_temp.append(X_train[j, :])
                     Y_temp.append(Y_train[j])
 
@@ -516,7 +519,7 @@ class SupervisedOPF(OPF):
 
         # Gathering final number of nodes
         final_nodes = self.subgraph.n_nodes
-
+        print('Initial number of nodes: %s. final number of nodes: %s.', initial_nodes, final_nodes)
         # Calculating pruning ratio
         prune_ratio = 1 - final_nodes / initial_nodes
 
