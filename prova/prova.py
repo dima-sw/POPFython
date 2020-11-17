@@ -3,11 +3,11 @@ from multiprocessing.managers import BaseManager
 import time
 from opfython.core import Heap
 
-from PIL import Image, ImageEnhance, ImageFilter,ImageOps
+#from PIL import Image, ImageEnhance, ImageFilter,ImageOps
 from numpy import asarray
+import copy
 
-
-def make_square(im, min_size=256, fill_color=(0, 0, 0)):
+"""def make_square(im, min_size=256, fill_color=(0, 0, 0)):
     x, y = im.size
     size = max(x, y)
     new_im = Image.new('RGB', (size, size), fill_color)
@@ -20,8 +20,25 @@ p=make_square(i).convert('L')
 print(p.size)
 p.show()
 
-print(asarray(p).min(), asarray(p).max())
+print(asarray(p).min(), asarray(p).max())"""
 
+def f(s):
+    #s=[3,4,5]
+
+    t=copy.deepcopy(s)
+
+    t[0][0]=22
+
+
+    #s[:]=t[:]
+    print(s[:]==t[:])
+    return t
+
+
+
+s=[[3,4,5],[3,4,5]]
+t=f(s)
+print(s[:]==t[:])
 
 """def proc(queue,i):
 

@@ -57,6 +57,7 @@ class Subgraph:
                 Y = np.ones(len(X), dtype=int)
 
             # Now, we need to build this class up
+
             self._build(X, Y, I)
 
         # If data could not be loaded

@@ -3,7 +3,9 @@ import opfython.stream.loader as l
 import opfython.stream.parser as p
 import opfython.stream.splitter as s
 from opfython.models import SupervisedOPF
+import time
 
+t1=time.time()
 # Loading a .txt file to a numpy array
 txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
 
@@ -26,5 +28,8 @@ preds = opf.predict(X_test)
 
 # Calculating accuracy
 acc = g.opf_accuracy(Y_test, preds)
+
+t2=time.time()
+print("Tempo: ", str(t2-t1))
 
 print(f'Accuracy: {acc}')

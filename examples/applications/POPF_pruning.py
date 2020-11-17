@@ -21,4 +21,4 @@ if __name__ == '__main__':
                         pre_computed_distance=None)
 
     # Performs the pruning procedure
-    opf.prune(X_train, Y_train, X_val, Y_val,6,0.1, n_iterations=5)
+    opf.prune(X_train, Y_train, X_val, Y_val,6,0.5, n_iterations=3)

@@ -4,9 +4,11 @@ import opfython.stream.parser as p
 import opfython.stream.splitter as s
 from opfython.models.POPF__supervised import SSupervisedPOPF
 import multiprocessing as mp
-
+import time
 
 if __name__ == '__main__':
+
+
     # Loading a .txt file to a numpy array
     txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
 
@@ -18,36 +20,23 @@ if __name__ == '__main__':
         X, Y, percentage=0.5, random_state=1)
 
 
-    print(mp.cpu_count())
+
     # Creates a SupervisedOPF instance
     opf = SSupervisedPOPF(processi=mp.cpu_count()
-                         ,distance='log_squared_euclidean',
-                        pre_computed_distance=None)
+                             ,distance='log_squared_euclidean',
+                            pre_computed_distance=None)
 
 
+    tagli = 10
+    t1 = time.time()
+    opf.fit(X_train, Y_train, tagli)
+    preds=opf.pred(X_test,tagli)
 
-    """min=None
-    temp=None
-    for i in range(2,mp.cpu_count()*3):
-        # Fits training data into the classifier
-        time=opf.fit(X_train, Y_train,i)
-
-        if temp==None or temp>time:
-            min=i
-            temp=time
-            print(temp)
-
-    print(min,temp)"""
-
-    opf.fit(X_train, Y_train, 6)
-
-
-
-    # Predicts new data
-    preds = opf.predict(X_test)
-
-    # Calculating accuracy
     acc = g.opf_accuracy(Y_test, preds)
-
-
     print(f'Accuracy: {acc}')
+
+    t2 = time.time()
+    tot = t2 - t1
+
+    print("Tempo: ", str(tot))
+

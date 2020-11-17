@@ -18,4 +18,4 @@ opf = SupervisedOPF(distance='log_squared_euclidean',
                     pre_computed_distance=None)
 
 # Performs the pruning procedure
-opf.prune(X_train, Y_train, X_val, Y_val, n_iterations=10)
+opf.prune(X_train, Y_train, X_val, Y_val, n_iterations=30)

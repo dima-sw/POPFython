@@ -351,6 +351,7 @@ class SupervisedOPF(OPF):
         logger.info('Data has been predicted.')
         logger.info('Prediction time: %s seconds.', predict_time)
 
+
         return preds
 
     def learn(self, X_train, Y_train, X_val, Y_val, n_iterations=10):

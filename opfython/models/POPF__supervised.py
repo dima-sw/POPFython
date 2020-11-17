@@ -10,7 +10,7 @@ import opfython.math.random as r
 import opfython.utils.constants as c
 import opfython.utils.exception as e
 import opfython.utils.logging as log
-from opfython.core import  Subgraph
+from opfython.core import  Subgraph,OPF
 from opfython.models import SupervisedOPF
 import opfython.math.general as g
 from multiprocessing import JoinableQueue, Process, Queue, Array
@@ -19,7 +19,7 @@ import math
 logger = log.get_logger(__name__)
 
 
-class SSupervisedPOPF(SupervisedOPF):
+class SSupervisedPOPF(OPF):
     """A SupervisedOPF which implements the supervised version of OPF classifier.
 
     References:
@@ -54,16 +54,16 @@ class SSupervisedPOPF(SupervisedOPF):
             processi[i].daemon = True
             processi[i].start()
 
-    def creaTagli(self,tagli,parti):
+    def creaTagli(self,tagli,parti,n):
         for i in range(tagli):
             if i == 0:
                 r1 = 0
             else:
-                r1 = i * int((self.subgraph.n_nodes / tagli))
+                r1 = i * int((n / tagli))
             if i == tagli - 1:
-                r2 = self.subgraph.n_nodes
+                r2 = n
             else:
-                r2 = int(r1 + (self.subgraph.n_nodes / tagli))
+                r2 = int(r1 + (n / tagli))
             parti.append((r1,r2))
 
     def calcWeight(self,s,t):
@@ -91,7 +91,24 @@ class SSupervisedPOPF(SupervisedOPF):
         return s
 
 
+    def updateProt(self,prototypes,p,pred):
+        # Checks if the label of current node is the same as its predecessor
+        if self.subgraph.nodes[p].label != self.subgraph.nodes[pred].label:
+            # If current node is not a prototype
+            if self.subgraph.nodes[p].status != c.PROTOTYPE:
+                # Marks it as a prototype
+                self.subgraph.nodes[p].status = c.PROTOTYPE
 
+                # Appends current node identifier to the prototype's list
+                prototypes.append(p)
+
+            # If predecessor node is not a prototype
+            if self.subgraph.nodes[pred].status != c.PROTOTYPE:
+                # Marks it as a protoype
+                self.subgraph.nodes[pred].status = c.PROTOTYPE
+
+                # Appends predecessor node identifier to the prototype's list
+                prototypes.append(pred)
 
     def _find_prototypes(self,tagli):
         """Find prototype nodes using the Minimum Spanning Tree (MST) approach.
@@ -145,22 +162,22 @@ class SSupervisedPOPF(SupervisedOPF):
 
         self.creaProcFit(self.protParal, processi, P, C, U, work, result)
         parti = []
-        self.creaTagli(tagli, parti)
+        self.creaTagli(tagli, parti, self.subgraph.n_nodes)
 
 
 
 
 
         # While the heap is not empty
-        #while not h.is_empty():
+
         while p != -1:
 
-            if flagTime:
+            """if flagTime:
                 startPerc = time.time()
-                flagTime = False
+                flagTime = False"""
 
             # Remove a node from the heap
-            #p = h.remove()
+
 
             # Gathers its cost from the heap
             self.subgraph.nodes[p].cost = C[p]
@@ -168,32 +185,15 @@ class SSupervisedPOPF(SupervisedOPF):
             #C[p]=
 
             # And also its predecessor
-            #pred = self.subgraph.nodes[p].pred
+
             pred= P[p]
 
 
-            # If the predecessor is not NIL
+            # If the predecessor is not NIL update prototypes
             if pred != c.NIL:
-                # Checks if the label of current node is the same as its predecessor
-                if self.subgraph.nodes[p].label != self.subgraph.nodes[pred].label:
-                    # If current node is not a prototype
-                    if self.subgraph.nodes[p].status != c.PROTOTYPE:
-                        # Marks it as a prototype
-                        self.subgraph.nodes[p].status = c.PROTOTYPE
-
-                        # Appends current node identifier to the prototype's list
-                        prototypes.append(p)
-
-                    # If predecessor node is not a prototype
-                    if self.subgraph.nodes[pred].status != c.PROTOTYPE:
-                        # Marks it as a protoype
-                        self.subgraph.nodes[pred].status = c.PROTOTYPE
-
-                        # Appends predecessor node identifier to the prototype's list
-                        prototypes.append(pred)
+                self.updateProt(prototypes,p,pred)
 
             for i in range(tagli):
-                # print(tagli[i][0],tagli[i],0)
                 work.put((parti[i][0], parti[i][1], p))
 
             work.join()
@@ -202,7 +202,7 @@ class SSupervisedPOPF(SupervisedOPF):
             # prendo il minimo
             p = self.calcMin(result)
 
-            percnew = (percent / self.subgraph.n_nodes) * 100
+            """percnew = (percent / self.subgraph.n_nodes) * 100
 
 
             if (percnew > percOld):
@@ -212,11 +212,13 @@ class SSupervisedPOPF(SupervisedOPF):
                 print("Estimeted time: " + str((endPerc - startPerc) * (100 - percnew)) + " seconds")
                 flagTime = True
 
-            percent += 1
+            percent += 1"""
         work.join()
 
         for i in range(self._processi):
             processi[i].terminate()
+
+        #Aggiorno il grafo
         for i in range(self.subgraph.n_nodes):
             self.subgraph.nodes[i].pred = P[i]
 
@@ -234,7 +236,7 @@ class SSupervisedPOPF(SupervisedOPF):
             s1=None
 
             for q in range(r1,r2):
-                # Checks if the color of current node in the heap is not black
+                #Vedo se il nodo non è ancora stato usato
                 if U[q] == 0:
                     # If `p` and `q` identifiers are different
                     if p != q:
@@ -253,7 +255,7 @@ class SSupervisedPOPF(SupervisedOPF):
                             if U[q] == 0:
                                 s1 = q
 
-                    # s1=None significa che ogni nodo del range di questo processo è già stato used
+            # s1=None significa che ogni nodo del range di questo processo è già stato used
             if s1 == None:
                     s1 = -1
                     # restituisco il risultato al processo principale
@@ -271,7 +273,6 @@ class SSupervisedPOPF(SupervisedOPF):
             if self.subgraph.nodes[i].status == c.PROTOTYPE:
 
                 """Se e' un prototipo Costo=0, Pred=nil, Label=la stessa del nodo"""
-
                 C[i] = 0
                 P[i] = c.NIL
                 L[i] = self.subgraph.nodes[i].label
@@ -299,9 +300,9 @@ class SSupervisedPOPF(SupervisedOPF):
         while s != -1:
 
             """Sempre per tempo e %"""
-            if flagTime:
+            """if flagTime:
                 startPerc = time.time()
-                flagTime = False
+                flagTime = False"""
 
             # marchio il nodo come usato
             U[s] = 1
@@ -323,9 +324,9 @@ class SSupervisedPOPF(SupervisedOPF):
             s = self.calcMin(result)
 
             # Tengo traccia a che punto sta, per file grossi è comodo
-            percnew = (percent / self.subgraph.n_nodes) * 100
+            """percnew = (percent / self.subgraph.n_nodes) * 100
 
-            """Sempre per tenere traccia"""
+            #Sempre per tenere traccia
             if (percnew > percOld):
                 endPerc = time.time()
                 percOld += 1
@@ -333,7 +334,7 @@ class SSupervisedPOPF(SupervisedOPF):
                 print("Estimeted time: " + str((endPerc - startPerc) * (100 - percnew)) + " seconds")
                 flagTime = True
 
-            percent += 1
+            percent += 1"""
 
     def fit(self, X_train, Y_train,tagli, I_train=None):
         """Fits data in the classifier.
@@ -350,6 +351,7 @@ class SSupervisedPOPF(SupervisedOPF):
         # Initializing the timer
 
         # Creating a subgraph
+
         self.subgraph = Subgraph(X_train, Y_train, I=I_train)
 
         # Finding prototypes
@@ -386,7 +388,7 @@ class SSupervisedPOPF(SupervisedOPF):
 
         """parti= [[0,n_nodi/tagli],...,[(tagli-1)*(n_nodi/tagli),n_nodi]]""" #partizionato in n parti uguali con n=tagli
         parti=[]
-        self.creaTagli(tagli,parti)
+        self.creaTagli(tagli,parti, self.subgraph.n_nodes)
 
 
 
@@ -472,17 +474,22 @@ class SSupervisedPOPF(SupervisedOPF):
                         s1 = t
         return s1
 
-    def learn(self, X_train, Y_train, X_val, Y_val,tagli, n_iterations=10):
+    def learn(self, xt, yt, xv, yv,tagli, n_iterations=10):
         """Learns the best classifier over a validation set.
 
         Args:
-            X_train (np.array): Array of training features.
-            Y_train (np.array): Array of training labels.
-            X_val (np.array): Array of validation features.
-            Y_val (np.array): Array of validation labels.
+            xt (np.array): Array of training features.
+            yt (np.array): Array of training labels.
+            xv (np.array): Array of validation features.
+            yv (np.array): Array of validation labels.
             n_iterations (int): Number of iterations.
 
         """
+
+        X_val=copy.deepcopy(xv)
+        X_train=copy.deepcopy(xt)
+        Y_val=copy.deepcopy(yv)
+        Y_train=copy.deepcopy(yt)
 
         logger.info('Learning the best classifier ...')
 
@@ -503,7 +510,7 @@ class SSupervisedPOPF(SupervisedOPF):
             self.fit(X_train, Y_train,tagli)
 
             # Predicts new data
-            preds = self.predict(X_val)
+            preds = self.pred(X_val,6)
 
             # Calculating accuracy
             acc = g.opf_accuracy(Y_val, preds)
@@ -516,6 +523,10 @@ class SSupervisedPOPF(SupervisedOPF):
                 # Makes a copy of the best OPF classifier
                 best_opf = copy.deepcopy(self)
 
+                xt[:]=X_train[:]
+                xv[:]=X_val[:]
+                yt[:]=Y_train[:]
+                yv[:]=Y_val[:]
                 # And saves the iteration number
                 best_t = t
 
@@ -575,12 +586,19 @@ class SSupervisedPOPF(SupervisedOPF):
             # If the difference is smaller than 10e-4 or iterations are finished
             if delta < 0.0001 or t == n_iterations:
                 # Replaces current class with the best OPF
-                self = best_opf
-
-                logger.info('Best classifier has been learned over iteration %d.', best_t+1)
+                self.subgraph = best_opf.subgraph
+                self.pred(xt,6)
 
                 # Breaks the loop
                 break
+
+        #self.predict(xv)
+
+        """# Calculating accuracy
+        acc = g.opf_accuracy(yv, preds)
+        print("ecco2 ", acc)"""
+
+
         return max_acc
 
 
@@ -592,82 +610,234 @@ class SSupervisedPOPF(SupervisedOPF):
             Y_train (np.array): Array of training labels.
             X_val (np.array): Array of validation features.
             Y_val (np.array): Array of validation labels.
-            n_iterations (int): Maximum number of iterations.
+            n_iterations (int): Maximum number of iterations of learning.
 
         """
 
 
         logger.info('Pruning classifier ...')
 
-        # Fits training data into the classifier
-        #acc=self.learn(X_train, Y_train, X_val, Y_val,tagli, n_iterations=n_iterations)
-        self.fit(X_train, Y_train,tagli)
+        # Faccio il primo learning e mi calcolo l'accuratezza massima
+        acc=self.learn(X_train, Y_train, X_val, Y_val,tagli, n_iterations=n_iterations)
 
-        # Predicts new data
-        preds = self.predict(X_val)
-
-        # Calculating accuracy
-        acc = g.opf_accuracy(Y_val, preds)
-
-        # Predicts new data
-        #g.opf_accuracy(Y_val,self.predict(X_val))
-
-        # Gathering initial number of nodes
+        #Prendo i nodi iniziali del grafo
         initial_nodes = self.subgraph.n_nodes
-        tmp=acc
-        flag=True
 
-        # For every possible iteration
-        #for t in range(n_iterations):
-        while abs(acc-tmp) <= M_loss and flag:
-            #logger.info('Running iteration %d/%d ...', t + 1, n_iterations)
+        # Faccio partire il pruring
+        self.pruringRun(acc,M_loss,tagli,n_iterations,X_train, Y_train, X_val, Y_val)
 
 
-            # Creating temporary lists
-            X_temp, Y_temp = [], []
-            X_t, Y_t=[],[]
-            flag=False
-            # Removing irrelevant nodes
-            for j, n in enumerate(self.subgraph.nodes):
-                if n.relevant != c.IRRELEVANT:
-                    X_temp.append(X_train[j, :])
-                    Y_temp.append(Y_train[j])
-                else:
-                    flag = True
-                    X_t.append(X_train[j, :])
-                    Y_t.append(Y_train[j])
-            for j in range(len(Y_val)):
-                X_t.append(X_val[j])
-                Y_t.append(Y_val[j])
-
-            # Copying lists back to original data
-            X_train = np.asarray(X_temp)
-            Y_train = np.asarray(Y_temp)
-
-            #X_val=np.asarray(X_t)
-            #Y_val=np.asarray(Y_t)
-
-            # Fits training data into the classifier
-            #tmp=self.learn(X_train, Y_train, X_val, Y_val, tagli, n_iterations=n_iterations)
-            self.fit(X_train, Y_train,tagli)
-
-            # Predicts new data
-            preds = self.predict(X_val)
-
-            # Calculating accuracy
-            tmp = g.opf_accuracy(Y_val, preds)
-            # Predicts new data
-            #preds = self.predict(X_val)
-
-            # Calculating accuracy
-            #tmp = g.opf_accuracy(Y_val, preds)
-
-            logger.info('Current accuracy: %s.', tmp)
-
-        # Gathering final number of nodes
+        #Prendo i nodi a fine pruring
         final_nodes = self.subgraph.n_nodes
-        print('Initial number of nodes: %s. final number of nodes: %s.',initial_nodes,final_nodes)
+        logger.info('Initial number of nodes: %s , final number of nodes: %s,',initial_nodes,final_nodes)
         # Calculating pruning ratio
         prune_ratio = 1 - final_nodes / initial_nodes
 
         logger.info('Prune ratio: %s.', prune_ratio)
+
+
+    def pruringRun(self,acc,M_loss,tagli,n_iterations,X_train, Y_train, X_val, Y_val):
+        tmp = acc
+        flag = True
+
+        #mentre l'accuratezza attuale è >= (dell'accuratezza massima iniziale - M_loss) e mentre ci sta almeno un nodo non Rilevante (flag)
+        while abs(acc-tmp) <= M_loss and flag:
+            #Rimuovo i nodi irrillevanti, aggiorno X_train, Y_train, X_val,Y_val e vedo se ci sta almeno un nodo non rilevante con flag
+            flag,X_train, Y_train, X_val,Y_val =self.pruringUpdateList(X_train,Y_train,X_val,Y_val)
+
+            #Faccio il learning e prendo l'accuratezza
+            tmp=self.learn(X_train, Y_train, X_val, Y_val, tagli, n_iterations=n_iterations)
+            logger.info('Current accuracy: %s.', tmp)
+
+    def pruringUpdateList(self,X_train,Y_train,X_val,Y_val):
+
+        #Liste temporanee per X_train, Y_trrain, X_val e Y_val
+        X_temp, Y_temp = [], []
+        X_t, Y_t = [], []
+
+        #Se flag rimanse false significa che tutti i nodi sono rilevanti e quindi possiamo terminare il pruning
+        flag = False
+        for j, n in enumerate(self.subgraph.nodes):
+            #Aggiungo alle liste temporanee per X_train, Y_train i nodi rilevanti
+            if n.relevant != c.IRRELEVANT:
+                X_temp.append(X_train[j, :])
+                Y_temp.append(Y_train[j])
+            #Aggiungo alle liste temporanee per X_val e Y_val i nodi non rilevanti
+            else:
+                #Non tutti i nodi sono rilevanti
+                flag = True
+                X_t.append(X_train[j, :])
+                Y_t.append(Y_train[j])
+        #Infine aggiungo alle liste temporanee per X_val e Y_val i nodi di testing che già c'erano
+        for j in range(len(Y_val)):
+            X_t.append(X_val[j])
+            Y_t.append(Y_val[j])
+
+        #restituisco tutti i numpy array
+        return flag,np.asarray(X_temp),np.asarray(Y_temp),np.asarray(X_t), np.asarray(Y_t)
+
+
+    def predConc(self, work,X_val, result,conquerors):
+
+        while True:
+            ran =work.get()
+            pred= self.predict(X_val[ran[0]:ran[1]], coda=conquerors)
+
+            j=0
+            for i in range(ran[0],ran[1]):
+                result[i]=pred[j]
+                j+=1
+
+            work.task_done()
+
+
+    def pred(self, X_val,tagli, I_val=None):
+        #tagli
+        t=[]
+        #processi
+        p=[]
+
+        self.creaTagli(tagli,t,len(X_val))
+        work=JoinableQueue()
+        conquerors=Queue()
+
+        #ci vanno i risultati in ordine
+        result=Array('i',len(X_val),lock=False)
+
+        self.creaProcFit(self.predConc,p,work,X_val,result,conquerors)
+
+        for i in range(len(t)):
+            work.put(t[i])
+
+        work.join()
+
+        for i in range(self._processi):
+            p[i].terminate()
+
+
+        while not conquerors.empty():
+            self.subgraph.mark_nodes(conquerors.get())
+
+        return result
+
+
+
+    def predict(self, X_val, I_val=None, coda=None):
+        """Predicts new data using the pre-trained classifier.
+
+        Args:
+            X_val (np.array): Array of validation or test features.
+            I_val (np.array): Array of validation or test indexes.
+
+        Returns:
+            A list of predictions for each record of the data.
+
+        """
+
+        # Checks if there is a subgraph
+        if not self.subgraph:
+            # If not, raises an BuildError
+            raise e.BuildError('Subgraph has not been properly created')
+
+        # Checks if subgraph has been properly trained
+        if not self.subgraph.trained:
+            # If not, raises an BuildError
+            raise e.BuildError('Classifier has not been properly fitted')
+
+        logger.info('Predicting data ...')
+
+        # Initializing the timer
+        start = time.time()
+
+        # Creating a prediction subgraph
+        pred_subgraph = Subgraph(X_val, I=I_val)
+
+        # For every possible node
+        for i in range(pred_subgraph.n_nodes):
+            # Initializing the conqueror node
+            conqueror = -1
+
+            # Initializes the `j` counter
+            j = 0
+
+            # Gathers the first node from the ordered list
+            k = self.subgraph.idx_nodes[j]
+
+            # Checks if we are using a pre-computed distance
+            if self.pre_computed_distance:
+                # Gathers the distance from the distance's matrix
+                weight = self.pre_distances[self.subgraph.nodes[k].idx][pred_subgraph.nodes[i].idx]
+
+            # If the distance is supposed to be calculated
+            else:
+                # Calls the corresponding distance function
+                weight = self.distance_fn(
+                    self.subgraph.nodes[k].features, pred_subgraph.nodes[i].features)
+
+            # The minimum cost will be the maximum between the `k` node cost and its weight (arc)
+            min_cost = np.maximum(self.subgraph.nodes[k].cost, weight)
+
+            # The current label will be `k` node's predicted label
+            current_label = self.subgraph.nodes[k].predicted_label
+
+            # While `j` is a possible node and the minimum cost is bigger than the current node's cost
+            while j < (self.subgraph.n_nodes - 1) and min_cost > self.subgraph.nodes[self.subgraph.idx_nodes[j+1]].cost:
+                # Gathers the next node from the ordered list
+                l = self.subgraph.idx_nodes[j+1]
+
+                # Checks if we are using a pre-computed distance
+                if self.pre_computed_distance:
+                    # Gathers the distance from the distance's matrix
+                    weight = self.pre_distances[self.subgraph.nodes[l].idx][pred_subgraph.nodes[i].idx]
+
+                # If the distance is supposed to be calculated
+                else:
+                    # Calls the corresponding distance function
+                    weight = self.distance_fn(
+                        self.subgraph.nodes[l].features, pred_subgraph.nodes[i].features)
+
+                # The temporary minimum cost will be the maximum between the `l` node cost and its weight (arc)
+                temp_min_cost = np.maximum(self.subgraph.nodes[l].cost, weight)
+
+                # If temporary minimum cost is smaller than the minimum cost
+                if temp_min_cost < min_cost:
+                    # Replaces the minimum cost
+                    min_cost = temp_min_cost
+
+                    # Gathers the identifier of `l` node
+                    conqueror = l
+
+                    # Updates the current label as `l` node's predicted label
+                    current_label = self.subgraph.nodes[l].predicted_label
+
+                # Increments the `j` counter
+                j += 1
+
+                # Makes `k` and `l` equals
+                k = l
+
+            # Node's `i` predicted label is the same as current label
+            pred_subgraph.nodes[i].predicted_label = current_label
+
+            # Checks if any node has been conquered
+            if conqueror > -1:
+                # Marks the conqueror node and its path
+                if coda is not None:
+                    coda.put(conqueror)
+                else:
+                    self.subgraph.mark_nodes(conqueror)
+
+        # Creating the list of predictions
+        preds = [pred.predicted_label for pred in pred_subgraph.nodes]
+
+        # Ending timer
+        end = time.time()
+
+        # Calculating prediction task time
+        predict_time = end - start
+
+        logger.info('Data has been predicted.')
+        logger.info('Prediction time: %s seconds.', predict_time)
+
+
+        return preds
