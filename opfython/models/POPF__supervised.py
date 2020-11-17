@@ -98,7 +98,6 @@ class SSupervisedPOPF(OPF):
             if self.subgraph.nodes[p].status != c.PROTOTYPE:
                 # Marks it as a prototype
                 self.subgraph.nodes[p].status = c.PROTOTYPE
-
                 # Appends current node identifier to the prototype's list
                 prototypes.append(p)
 
@@ -134,27 +133,17 @@ class SSupervisedPOPF(OPF):
             P[i]=c.NIL
 
         # Creating a Heap of size equals to number of nodes
-        #h = Heap(self.subgraph.n_nodes)
 
         # Marking first node without any predecessor
         self.subgraph.nodes[0].pred = c.NIL
         P[0]=c.NIL
 
         # Adding first node to the heap
-        #h.insert(0)
 
         p=0
 
         # Creating a list of prototype nodes
         prototypes = []
-
-
-
-
-        percent = 0
-        percOld = 1
-        flagTime = True
-
         processi = []
 
         work = JoinableQueue()
@@ -164,10 +153,9 @@ class SSupervisedPOPF(OPF):
         parti = []
         self.creaTagli(tagli, parti, self.subgraph.n_nodes)
 
-
-
-
-
+        """percent = 0
+               percOld = 1
+               flagTime = True """
         # While the heap is not empty
 
         while p != -1:
@@ -245,10 +233,9 @@ class SSupervisedPOPF(OPF):
                         # If current arc's cost is smaller than the path's cost
                         if weight < C[q]:
                             # Marks `q` predecessor node as `p`
-                            #self.subgraph.nodes[q].pred = p
                             P[q]=p
 
-                            # Updates the arc on the heap
+                            #Aggiorno il costo
                             C[q]= weight
                         if(s1 == None or C[s1] > C[q]):
                         # e se il nodo non è stato già used
@@ -258,7 +245,7 @@ class SSupervisedPOPF(OPF):
             # s1=None significa che ogni nodo del range di questo processo è già stato used
             if s1 == None:
                     s1 = -1
-                    # restituisco il risultato al processo principale
+            # restituisco il risultato al processo principale il più piccolo s1 e il suo costo
             result.put((s1, C[s1]))
             work.task_done()
 
@@ -293,13 +280,15 @@ class SSupervisedPOPF(OPF):
 
     def fitCompute(self,s,U,C,work,result,tagli,parti):
         """Percentuali per la stampa del tempo stimato e a che % stiamo"""
-        percent = 0
+
+        """percent = 0
         percOld = 1
-        flagTime = True
+        flagTime = True """
+
         # quando avrò computato tutti i nodi s sarà = -1
         while s != -1:
 
-            """Sempre per tempo e %"""
+            """tempo stimato e %"""
             """if flagTime:
                 startPerc = time.time()
                 flagTime = False"""
@@ -363,7 +352,7 @@ class SSupervisedPOPF(OPF):
 
 
         """Questi 3 array li useremo durante la concorrenza
-                    P-> array dei pred
+                    P-> array dei predecessori
                     C-> array dei costi
                     U-> array degli used per vedere se gia' abbiamo usato il nodo
                     L-> array delle label
@@ -378,6 +367,8 @@ class SSupervisedPOPF(OPF):
 
 
         processi = []
+
+
 
         work = JoinableQueue()
         result = Queue()
@@ -434,7 +425,7 @@ class SSupervisedPOPF(OPF):
             s1 = self.workInRange(s,r1,r2,C,L,P,U)
 
 
-            # s1=None significa che ogni nodo del range di questo processo è già stato used
+            # s1=None significa che ogni nodo di questo range è già stato used
             if s1 == None:
                 s1 = -1
             # restituisco il risultato al processo principale
@@ -459,7 +450,7 @@ class SSupervisedPOPF(OPF):
                     # Il costo corrente sarà il massimo tra il costo dell'arco tra i due nodi (weight, l'arco in realtà non esiste) e il nodo s
                     current_cost = np.maximum(C[s], weight)
 
-                    # If current cost is smaller than `q` node's cost
+                    # If current cost is smaller than `t` node's cost
                     if current_cost < C[t]:
                         # aggiorno la label di t che sarà uguale a quella di s
                         L[t] = L[s]
@@ -469,137 +460,12 @@ class SSupervisedPOPF(OPF):
 
                 # se s1 non è stato ancora assegnato oppure il costo di s1>costo t1
                 if (s1 == None or C[s1] > C[t]):
-                    # e se il nodo non è stato già used
+                    # e se il nodo t non è stato già used aggiorno s1
                     if U[t] == 0:
                         s1 = t
         return s1
 
-    def learn(self, xt, yt, xv, yv,tagli, n_iterations=10):
-        """Learns the best classifier over a validation set.
 
-        Args:
-            xt (np.array): Array of training features.
-            yt (np.array): Array of training labels.
-            xv (np.array): Array of validation features.
-            yv (np.array): Array of validation labels.
-            n_iterations (int): Number of iterations.
-
-        """
-
-        X_val=copy.deepcopy(xv)
-        X_train=copy.deepcopy(xt)
-        Y_val=copy.deepcopy(yv)
-        Y_train=copy.deepcopy(yt)
-
-        logger.info('Learning the best classifier ...')
-
-        # Defines the maximum accuracy
-        max_acc = 0
-
-        # Defines the previous accuracy
-        previous_acc = 0
-
-        # Defines the iterations counter
-        t = 0
-
-        # An always true loop
-        while True:
-            logger.info('Running iteration %d/%d ...', t+1, n_iterations)
-
-            # Fits training data into the classifier
-            self.fit(X_train, Y_train,tagli)
-
-            # Predicts new data
-            preds = self.pred(X_val,6)
-
-            # Calculating accuracy
-            acc = g.opf_accuracy(Y_val, preds)
-
-            # Checks if current accuracy is better than the best one
-            if acc > max_acc:
-                # If yes, replace the maximum accuracy
-                max_acc = acc
-
-                # Makes a copy of the best OPF classifier
-                best_opf = copy.deepcopy(self)
-
-                xt[:]=X_train[:]
-                xv[:]=X_val[:]
-                yt[:]=Y_train[:]
-                yv[:]=Y_val[:]
-                # And saves the iteration number
-                best_t = t
-
-            # Gathers which samples were missclassified
-            errors = np.argwhere(Y_val != preds)
-
-            # Defining the initial number of non-prototypes as 0
-            non_prototypes = 0
-
-            # For every possible subgraph's node
-            for n in self.subgraph.nodes:
-                # If the node is not a prototype
-                if n.status != c.PROTOTYPE:
-                    # Increments the number of non-prototypes
-                    non_prototypes += 1
-
-            # For every possible error
-            for err in errors:
-                # Counter will receive the number of non-prototypes
-                ctr = non_prototypes
-
-                # While the counter is bigger than zero
-                while ctr > 0:
-                    # Generates a random index
-                    j = int(r.generate_uniform_random_number(0, len(X_train)))
-
-                    # If the node on that particular index is not a prototype
-                    if self.subgraph.nodes[j].status != c.PROTOTYPE:
-                        # Swap the input nodes
-                        X_train[j, :], X_val[err, :] = X_val[err, :], X_train[j, :]
-
-                        # Swap the target nodes
-                        Y_train[j], Y_val[err] = Y_val[err], Y_train[j]
-
-                        # Decrements the number of non-prototypes
-                        non_prototypes -= 1
-
-                        # Resets the counter
-                        ctr = 0
-
-                    # If the node on that particular index is a prototype
-                    else:
-                        # Decrements the counter
-                        ctr -= 1
-
-            # Calculating difference between current accuracy and previous one
-            delta = np.fabs(acc - previous_acc)
-
-            # Replacing the previous accuracy as current accuracy
-            previous_acc = acc
-
-            # Incrementing the counter
-            t += 1
-
-            logger.info('Accuracy: %s | Delta: %s | Maximum Accuracy: %s', acc, delta, max_acc)
-
-            # If the difference is smaller than 10e-4 or iterations are finished
-            if delta < 0.0001 or t == n_iterations:
-                # Replaces current class with the best OPF
-                self.subgraph = best_opf.subgraph
-                self.pred(xt,6)
-
-                # Breaks the loop
-                break
-
-        #self.predict(xv)
-
-        """# Calculating accuracy
-        acc = g.opf_accuracy(yv, preds)
-        print("ecco2 ", acc)"""
-
-
-        return max_acc
 
 
     def prune(self, X_train, Y_train, X_val, Y_val, tagli,M_loss, n_iterations=10):
@@ -841,3 +707,123 @@ class SSupervisedPOPF(OPF):
 
 
         return preds
+
+    def learn(self, xt, yt, xv, yv,tagli, n_iterations=10):
+        """Learns the best classifier over a validation set.
+
+        Args:
+            xt (np.array): Array of training features.
+            yt (np.array): Array of training labels.
+            xv (np.array): Array of validation features.
+            yv (np.array): Array of validation labels.
+            n_iterations (int): Number of iterations.
+
+        """
+
+        X_val=copy.deepcopy(xv)
+        X_train=copy.deepcopy(xt)
+        Y_val=copy.deepcopy(yv)
+        Y_train=copy.deepcopy(yt)
+
+        logger.info('Learning the best classifier ...')
+
+        # Defines the maximum accuracy
+        max_acc = 0
+
+        # Defines the previous accuracy
+        previous_acc = 0
+
+        # Defines the iterations counter
+        t = 0
+
+        # An always true loop
+        while True:
+            logger.info('Running iteration %d/%d ...', t+1, n_iterations)
+
+            # Fits training data into the classifier
+            self.fit(X_train, Y_train,tagli)
+
+            # Predicts new data
+            preds = self.pred(X_val,6)
+
+            # Calculating accuracy
+            acc = g.opf_accuracy(Y_val, preds)
+
+            # Checks if current accuracy is better than the best one
+            if acc > max_acc:
+                # If yes, replace the maximum accuracy
+                max_acc = acc
+
+                # Makes a copy of the best OPF classifier
+                best_opf = copy.deepcopy(self)
+
+                xt[:]=X_train[:]
+                xv[:]=X_val[:]
+                yt[:]=Y_train[:]
+                yv[:]=Y_val[:]
+                # And saves the iteration number
+                best_t = t
+
+            # Gathers which samples were missclassified
+            errors = np.argwhere(Y_val != preds)
+
+            # Defining the initial number of non-prototypes as 0
+            non_prototypes = 0
+
+            # For every possible subgraph's node
+            for n in self.subgraph.nodes:
+                # If the node is not a prototype
+                if n.status != c.PROTOTYPE:
+                    # Increments the number of non-prototypes
+                    non_prototypes += 1
+
+            # For every possible error
+            for err in errors:
+                # Counter will receive the number of non-prototypes
+                ctr = non_prototypes
+
+                # While the counter is bigger than zero
+                while ctr > 0:
+                    # Generates a random index
+                    j = int(r.generate_uniform_random_number(0, len(X_train)))
+
+                    # If the node on that particular index is not a prototype
+                    if self.subgraph.nodes[j].status != c.PROTOTYPE:
+                        # Swap the input nodes
+                        X_train[j, :], X_val[err, :] = X_val[err, :], X_train[j, :]
+
+                        # Swap the target nodes
+                        Y_train[j], Y_val[err] = Y_val[err], Y_train[j]
+
+                        # Decrements the number of non-prototypes
+                        non_prototypes -= 1
+
+                        # Resets the counter
+                        ctr = 0
+
+                    # If the node on that particular index is a prototype
+                    else:
+                        # Decrements the counter
+                        ctr -= 1
+
+            # Calculating difference between current accuracy and previous one
+            delta = np.fabs(acc - previous_acc)
+
+            # Replacing the previous accuracy as current accuracy
+            previous_acc = acc
+
+            # Incrementing the counter
+            t += 1
+
+            logger.info('Accuracy: %s | Delta: %s | Maximum Accuracy: %s', acc, delta, max_acc)
+
+            # If the difference is smaller than 10e-4 or iterations are finished
+            if delta < 0.0001 or t == n_iterations:
+                # Replaces current class with the best OPF
+                self.subgraph = best_opf.subgraph
+                self.pred(xt,6)
+
+                # Breaks the loop
+                break
+
+        return max_acc
