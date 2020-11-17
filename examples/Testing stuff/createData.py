@@ -11,7 +11,7 @@ def creaGig():
 
 
 
-    for j in range(3000):
+    for j in range(5000):
         #for j in range(2000):
 
             i= random.randint(0,3)

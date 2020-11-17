@@ -11,9 +11,9 @@ import opfython.utils.constants as c
 import opfython.utils.exception as e
 import opfython.utils.logging as log
 from opfython.core import  Subgraph,OPF
-from opfython.models import SupervisedOPF
 import opfython.math.general as g
 from multiprocessing import JoinableQueue, Process, Queue, Array
+from opfython.POPF_functions.POPF_functions import creaProcFit,creaTagli,calcMin
 
 import math
 logger = log.get_logger(__name__)
@@ -47,25 +47,6 @@ class SSupervisedPOPF(OPF):
         logger.info('Class overrided.')
 
 
-
-    def creaProcFit(self,target,processi,*args):
-        for i in range(self._processi):
-            processi.append(Process(target=target, args=(args)))
-            processi[i].daemon = True
-            processi[i].start()
-
-    def creaTagli(self,tagli,parti,n):
-        for i in range(tagli):
-            if i == 0:
-                r1 = 0
-            else:
-                r1 = i * int((n / tagli))
-            if i == tagli - 1:
-                r2 = n
-            else:
-                r2 = int(r1 + (n / tagli))
-            parti.append((r1,r2))
-
     def calcWeight(self,s,t):
         if self.pre_computed_distance:
             # Gathers the distance from the distance's matrix
@@ -78,17 +59,7 @@ class SSupervisedPOPF(OPF):
                 self.subgraph.nodes[t].features, self.subgraph.nodes[s].features)
         return weight
 
-    """Calcolo il minimo dei risultati"""
-    def calcMin(self,result):
-        r=result.get()
-        s = r[0]
-        min=r[1]
-        while not result.empty():
-            r=result.get()
-            if (min>r[1] and r[0]!=-1) or (s==-1 and r[0]!=-1):
-                s=r[0]
-                min=r[1]
-        return s
+
 
 
     def updateProt(self,prototypes,p,pred):
@@ -149,9 +120,9 @@ class SSupervisedPOPF(OPF):
         work = JoinableQueue()
         result = Queue()
 
-        self.creaProcFit(self.protParal, processi, P, C, U, work, result)
+        creaProcFit(self.protParal, processi,self._processi, P, C, U, work, result)
         parti = []
-        self.creaTagli(tagli, parti, self.subgraph.n_nodes)
+        creaTagli(tagli, parti, self.subgraph.n_nodes)
 
         """percent = 0
                percOld = 1
@@ -188,7 +159,7 @@ class SSupervisedPOPF(OPF):
 
 
             # prendo il minimo
-            p = self.calcMin(result)
+            p = calcMin(result)
 
             """percnew = (percent / self.subgraph.n_nodes) * 100
 
@@ -310,7 +281,7 @@ class SSupervisedPOPF(OPF):
             work.join()
 
             # prendo il minimo
-            s = self.calcMin(result)
+            s = calcMin(result)
 
             # Tengo traccia a che punto sta, per file grossi è comodo
             """percnew = (percent / self.subgraph.n_nodes) * 100
@@ -374,12 +345,12 @@ class SSupervisedPOPF(OPF):
         result = Queue()
 
         #creo e faccio partire i processi
-        self.creaProcFit(self.train,processi,P,C,L,U, work, result)
+        creaProcFit(self.train,processi,self._processi,P,C,L,U, work, result)
 
 
         """parti= [[0,n_nodi/tagli],...,[(tagli-1)*(n_nodi/tagli),n_nodi]]""" #partizionato in n parti uguali con n=tagli
         parti=[]
-        self.creaTagli(tagli,parti, self.subgraph.n_nodes)
+        creaTagli(tagli,parti, self.subgraph.n_nodes)
 
 
 
@@ -563,14 +534,14 @@ class SSupervisedPOPF(OPF):
         #processi
         p=[]
 
-        self.creaTagli(tagli,t,len(X_val))
+        creaTagli(tagli,t,len(X_val))
         work=JoinableQueue()
         conquerors=Queue()
 
         #ci vanno i risultati in ordine
         result=Array('i',len(X_val),lock=False)
 
-        self.creaProcFit(self.predConc,p,work,X_val,result,conquerors)
+        creaProcFit(self.predConc,p,self._processi,work,X_val,result,conquerors)
 
         for i in range(len(t)):
             work.put(t[i])
