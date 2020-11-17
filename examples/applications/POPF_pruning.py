@@ -4,8 +4,11 @@ import opfython.stream.splitter as s
 
 from opfython.models.POPF__supervised import SSupervisedPOPF
 import multiprocessing as mp
+import time
 
 if __name__ == '__main__':
+
+    t1=time.time()
     # Loading a .txt file to a numpy array
     txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
 
@@ -22,3 +25,6 @@ if __name__ == '__main__':
 
     # Performs the pruning procedure
     opf.prune(X_train, Y_train, X_val, Y_val,6,0.05, n_iterations=3)
+    t2=time.time()
+
+    print(t2-t1)

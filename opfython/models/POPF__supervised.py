@@ -721,7 +721,7 @@ class SSupervisedPOPF(OPF):
             self.fit(X_train, Y_train,tagli)
 
             # Predicts new data
-            preds = self.pred(X_val,6)
+            preds = self.pred(X_val,tagli)
 
             # Calculating accuracy
             acc = g.opf_accuracy(Y_val, preds)
