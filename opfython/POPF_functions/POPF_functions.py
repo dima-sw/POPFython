@@ -1,10 +1,10 @@
 from multiprocessing import Process, Queue, JoinableQueue
 
-def creaProcFit(target, processi,nproc, *args):
+def creaProcFit(target, nproc, *args):
     for i in range(nproc):
-        processi.append(Process(target=target, args=(args)))
-        processi[i].daemon = True
-        processi[i].start()
+        p=Process(target=target, args=(args))
+        p.daemon = True
+        p.start()
 
 
 def creaTagli(tagli, parti, n):

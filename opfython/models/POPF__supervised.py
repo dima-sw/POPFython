@@ -80,6 +80,56 @@ class SSupervisedPOPF(OPF):
                 # Appends predecessor node identifier to the prototype's list
                 prototypes.append(pred)
 
+    def start_find_prototypes(self,p,U,P,C,prototypes,tagli,work,parti,result):
+        """percent = 0
+                       percOld = 1
+                       flagTime = True """
+
+        #Finchè tutti i nodi non sono used
+        while p != -1:
+
+            """if flagTime:
+                startPerc = time.time()
+                flagTime = False"""
+
+
+
+            # Gathers its cost
+            self.subgraph.nodes[p].cost = C[p]
+
+
+            # And also its predecessor
+            pred = P[p]
+
+            # Nodo p=used
+            U[p] = 1
+
+            # If the predecessor is not NIL update prototypes
+            if pred != c.NIL:
+                self.updateProt(prototypes, p, pred)
+
+            #Metto le suddivisioni e p in work
+            for i in range(tagli):
+                work.put((parti[i][0], parti[i][1], p))
+
+            #Aspetto che finiscono i processi
+            work.join()
+
+            # prendo il minimo
+            p = calcMin(result)
+
+            """percnew = (percent / self.subgraph.n_nodes) * 100
+
+
+            if (percnew > percOld):
+                endPerc = time.time()
+                percOld += 1
+                print("Prototypes %" + str(int(percnew)))
+                print("Estimeted time: " + str((endPerc - startPerc) * (100 - percnew)) + " seconds")
+                flagTime = True
+
+            percent += 1"""
+
     def _find_prototypes(self,tagli):
         """Find prototype nodes using the Minimum Spanning Tree (MST) approach.
 
@@ -99,6 +149,7 @@ class SSupervisedPOPF(OPF):
         C = Array('f', self.subgraph.n_nodes, lock=False)
         U = Array('i', self.subgraph.n_nodes, lock=False)
 
+        #Inizialmente C =max e P= nil
         for i in range(self.subgraph.n_nodes):
             C[i]=c.FLOAT_MAX
             P[i]=c.NIL
@@ -115,67 +166,22 @@ class SSupervisedPOPF(OPF):
 
         # Creating a list of prototype nodes
         prototypes = []
-        processi = []
+
 
         work = JoinableQueue()
         result = Queue()
 
-        creaProcFit(self.protParal, processi,self._processi, P, C, U, work, result)
+        #creo i processi
+        creaProcFit(self.protParal,self._processi, P, C, U, work, result)
         parti = []
         creaTagli(tagli, parti, self.subgraph.n_nodes)
 
-        """percent = 0
-               percOld = 1
-               flagTime = True """
-        # While the heap is not empty
-
-        while p != -1:
-
-            """if flagTime:
-                startPerc = time.time()
-                flagTime = False"""
-
-            # Remove a node from the heap
+        #Inizia ufficialmente a trovare i prototipi con MST
+        self.start_find_prototypes(p,U,P,C,prototypes,tagli,work,parti,result)
 
 
-            # Gathers its cost from the heap
-            self.subgraph.nodes[p].cost = C[p]
-            U[p]=1
-            #C[p]=
-
-            # And also its predecessor
-
-            pred= P[p]
-
-
-            # If the predecessor is not NIL update prototypes
-            if pred != c.NIL:
-                self.updateProt(prototypes,p,pred)
-
-            for i in range(tagli):
-                work.put((parti[i][0], parti[i][1], p))
-
-            work.join()
-
-
-            # prendo il minimo
-            p = calcMin(result)
-
-            """percnew = (percent / self.subgraph.n_nodes) * 100
-
-
-            if (percnew > percOld):
-                endPerc = time.time()
-                percOld += 1
-                print("Prototypes %" + str(int(percnew)))
-                print("Estimeted time: " + str((endPerc - startPerc) * (100 - percnew)) + " seconds")
-                flagTime = True
-
-            percent += 1"""
-        work.join()
-
-        for i in range(self._processi):
-            processi[i].terminate()
+        """for i in range(self._processi):
+            processi[i].terminate() """
 
         #Aggiorno il grafo
         for i in range(self.subgraph.n_nodes):
@@ -337,7 +343,7 @@ class SSupervisedPOPF(OPF):
         primo=self.initGraphFit(U,C,P,L)
 
 
-        processi = []
+
 
 
 
@@ -345,7 +351,7 @@ class SSupervisedPOPF(OPF):
         result = Queue()
 
         #creo e faccio partire i processi
-        creaProcFit(self.train,processi,self._processi,P,C,L,U, work, result)
+        creaProcFit(self.train,self._processi,P,C,L,U, work, result)
 
 
         """parti= [[0,n_nodi/tagli],...,[(tagli-1)*(n_nodi/tagli),n_nodi]]""" #partizionato in n parti uguali con n=tagli
@@ -361,9 +367,9 @@ class SSupervisedPOPF(OPF):
         self.fitCompute(s,U,C,work,result,tagli,parti)
 
 
-        """Termino i processi"""
+        """Termino i processi
         for i in range(self._processi):
-            processi[i].terminate()
+            processi[i].terminate() """
 
 
         # aggiorno pred e label dei nodi
@@ -531,8 +537,8 @@ class SSupervisedPOPF(OPF):
     def pred(self, X_val,tagli, I_val=None):
         #tagli
         t=[]
-        #processi
-        p=[]
+
+
 
         creaTagli(tagli,t,len(X_val))
         work=JoinableQueue()
@@ -541,15 +547,15 @@ class SSupervisedPOPF(OPF):
         #ci vanno i risultati in ordine
         result=Array('i',len(X_val),lock=False)
 
-        creaProcFit(self.predConc,p,self._processi,work,X_val,result,conquerors)
+        creaProcFit(self.predConc,self._processi,work,X_val,result,conquerors)
 
         for i in range(len(t)):
             work.put(t[i])
 
         work.join()
 
-        for i in range(self._processi):
-            p[i].terminate()
+        """for i in range(self._processi):
+            p[i].terminate() """
 
 
         while not conquerors.empty():
