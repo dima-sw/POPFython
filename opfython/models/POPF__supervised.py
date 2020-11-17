@@ -166,13 +166,13 @@ class SSupervisedPOPF(OPF):
 
         # Creating a list of prototype nodes
         prototypes = []
-
+        processi = []
 
         work = JoinableQueue()
         result = Queue()
 
         #creo i processi
-        creaProcFit(self.protParal,self._processi, P, C, U, work, result)
+        creaProcFit(self.protParal, processi,self._processi, P, C, U, work, result)
         parti = []
         creaTagli(tagli, parti, self.subgraph.n_nodes)
 
@@ -180,8 +180,8 @@ class SSupervisedPOPF(OPF):
         self.start_find_prototypes(p,U,P,C,prototypes,tagli,work,parti,result)
 
 
-        """for i in range(self._processi):
-            processi[i].terminate() """
+        for i in range(self._processi):
+            processi[i].terminate()
 
         #Aggiorno il grafo
         for i in range(self.subgraph.n_nodes):
@@ -343,7 +343,7 @@ class SSupervisedPOPF(OPF):
         primo=self.initGraphFit(U,C,P,L)
 
 
-
+        processi = []
 
 
 
@@ -351,7 +351,7 @@ class SSupervisedPOPF(OPF):
         result = Queue()
 
         #creo e faccio partire i processi
-        creaProcFit(self.train,self._processi,P,C,L,U, work, result)
+        creaProcFit(self.train,processi,self._processi,P,C,L,U, work, result)
 
 
         """parti= [[0,n_nodi/tagli],...,[(tagli-1)*(n_nodi/tagli),n_nodi]]""" #partizionato in n parti uguali con n=tagli
@@ -367,9 +367,9 @@ class SSupervisedPOPF(OPF):
         self.fitCompute(s,U,C,work,result,tagli,parti)
 
 
-        """Termino i processi
+        """Termino i processi"""
         for i in range(self._processi):
-            processi[i].terminate() """
+            processi[i].terminate()
 
 
         # aggiorno pred e label dei nodi
@@ -537,8 +537,8 @@ class SSupervisedPOPF(OPF):
     def pred(self, X_val,tagli, I_val=None):
         #tagli
         t=[]
-
-
+        #processi
+        p=[]
 
         creaTagli(tagli,t,len(X_val))
         work=JoinableQueue()
@@ -547,15 +547,15 @@ class SSupervisedPOPF(OPF):
         #ci vanno i risultati in ordine
         result=Array('i',len(X_val),lock=False)
 
-        creaProcFit(self.predConc,self._processi,work,X_val,result,conquerors)
+        creaProcFit(self.predConc,p,self._processi,work,X_val,result,conquerors)
 
         for i in range(len(t)):
             work.put(t[i])
 
         work.join()
 
-        """for i in range(self._processi):
-            p[i].terminate() """
+        for i in range(self._processi):
+            p[i].terminate()
 
 
         while not conquerors.empty():
