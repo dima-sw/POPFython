@@ -154,14 +154,14 @@ class SSupervisedPOPF(OPF):
             C[i]=c.FLOAT_MAX
             P[i]=c.NIL
 
-        # Creating a Heap of size equals to number of nodes
+        
 
         # Marking first node without any predecessor
         self.subgraph.nodes[0].pred = c.NIL
         P[0]=c.NIL
 
-        # Adding first node to the heap
-
+        
+        #primo nodo
         p=0
 
         # Creating a list of prototype nodes
@@ -179,7 +179,7 @@ class SSupervisedPOPF(OPF):
         #Inizia ufficialmente a trovare i prototipi con MST
         self.start_find_prototypes(p,U,P,C,prototypes,tagli,work,parti,result)
 
-
+        #termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)
         for i in range(self._processi):
             processi[i].terminate()
 
@@ -192,14 +192,17 @@ class SSupervisedPOPF(OPF):
         logger.debug('Prototypes: %s.', prototypes)
         logger.info('Prototypes found in: %s seconds.', fittime)
 
-
+    
+    #La parte concorrente di find_prototypes
     def protParal(self,P, C, U, work, result):
 
         while True:
+            #prendo un range e il nodo p
             r1,r2,p=work.get()
 
             s1=None
-
+            
+            #lavoro su un range
             for q in range(r1,r2):
                 #Vedo se il nodo non è ancora stato usato
                 if U[q] == 0:
@@ -219,14 +222,15 @@ class SSupervisedPOPF(OPF):
                             if U[q] == 0:
                                 s1 = q
 
-            # s1=None significa che ogni nodo del range di questo processo è già stato used
+            # s1=None significa che ogni nodo di questo range è stato used
             if s1 == None:
                     s1 = -1
             # restituisco il risultato al processo principale il più piccolo s1 e il suo costo
             result.put((s1, C[s1]))
             work.task_done()
 
-
+    
+    #Inizializzo gli array per il training
     def initGraphFit(self,U,C,P,L):
         flag = True  # per prendere il primo prototipo
 
@@ -254,7 +258,9 @@ class SSupervisedPOPF(OPF):
                 L[i] = c.NIL
 
         return primo
-
+    
+    
+    #La parte del training
     def fitCompute(self,s,U,C,work,result,tagli,parti):
         """Percentuali per la stampa del tempo stimato e a che % stiamo"""
 
@@ -342,10 +348,8 @@ class SSupervisedPOPF(OPF):
         #Inizializzo gli array e prendo il primo prototipo
         primo=self.initGraphFit(U,C,P,L)
 
-
+       #Mi conservo i processi, serve durante il pruring per non itasare la memoria con processi
         processi = []
-
-
 
         work = JoinableQueue()
         result = Queue()
@@ -367,7 +371,7 @@ class SSupervisedPOPF(OPF):
         self.fitCompute(s,U,C,work,result,tagli,parti)
 
 
-        """Termino i processi"""
+         #termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)
         for i in range(self._processi):
             processi[i].terminate()
 
@@ -390,7 +394,7 @@ class SSupervisedPOPF(OPF):
         logger.info('Training time: %s seconds.', train_time)
 
 
-
+    #Parte concorrente del training
     def train(self, P,C,L,U, work, result):
 
 
@@ -398,7 +402,7 @@ class SSupervisedPOPF(OPF):
             #vedo se c'è un range sul quale lavorare
             r1,r2, s = work.get()
 
-            # s1 dovrà essere il nodo non usato con il costo più piccolo, workInRange è proprio il lavoro del processo nel range r1,r2
+            # s1 dovrà essere il nodo non usato con il costo più piccolo, workInRange è proprio il lavoro che svolte il processo nel range r1,r2 (for interno)
             s1 = self.workInRange(s,r1,r2,C,L,P,U)
 
 
@@ -410,6 +414,7 @@ class SSupervisedPOPF(OPF):
             #finisco su questo range
             work.task_done()
 
+    
     def workInRange(self,s,r1,r2,C,L,P,U):
         s1=None
         # lavoro solo nel range preso dalla work.get() r1,r2
@@ -480,7 +485,9 @@ class SSupervisedPOPF(OPF):
 
 
     def pruringRun(self,acc,M_loss,tagli,n_iterations,X_train, Y_train, X_val, Y_val):
+        #tmp= accuratezza attuale
         tmp = acc
+        #flag serve per tenere traccia se ci sia ancora un nodo rilevante
         flag = True
 
         #mentre l'accuratezza attuale è >= (dell'accuratezza massima iniziale - M_loss) e mentre ci sta almeno un nodo non Rilevante (flag)
@@ -501,63 +508,74 @@ class SSupervisedPOPF(OPF):
         #Se flag rimanse false significa che tutti i nodi sono rilevanti e quindi possiamo terminare il pruning
         flag = False
         for j, n in enumerate(self.subgraph.nodes):
-            #Aggiungo alle liste temporanee per X_train, Y_train i nodi rilevanti
+            #Aggiungo alle liste temporanee X_temp, Y_temp i nodi rilevanti
             if n.relevant != c.IRRELEVANT:
                 X_temp.append(X_train[j, :])
                 Y_temp.append(Y_train[j])
-            #Aggiungo alle liste temporanee per X_val e Y_val i nodi non rilevanti
+            #Aggiungo alle liste temporanee X_t e Y_t i nodi non rilevanti
             else:
-                #Non tutti i nodi sono rilevanti
+                #flag=true non tutti i nodi sono rilevanti
                 flag = True
                 X_t.append(X_train[j, :])
                 Y_t.append(Y_train[j])
-        #Infine aggiungo alle liste temporanee per X_val e Y_val i nodi di testing che già c'erano
+        #Infine faccio l'unione X_t U X_val, Y_t U Y_val cioè unisco i nodi non rilevanti ai già presenti nodi in X_val e Y_val 
         for j in range(len(Y_val)):
             X_t.append(X_val[j])
             Y_t.append(Y_val[j])
 
-        #restituisco tutti i numpy array
+        #restituisco flag e tutti i numpy array
         return flag,np.asarray(X_temp),np.asarray(Y_temp),np.asarray(X_t), np.asarray(Y_t)
 
-
+    
+    #Parte cocorrente per il preict
     def predConc(self, work,X_val, result,conquerors):
-
         while True:
+            #predno il range su cui fare il predict
             ran =work.get()
+            #faccio il predict su un range di X_val
             pred= self.predict(X_val[ran[0]:ran[1]], coda=conquerors)
 
             j=0
+            #mi salvo i pred nell'ordine giusto
             for i in range(ran[0],ran[1]):
                 result[i]=pred[j]
                 j+=1
 
             work.task_done()
 
-
+    
+   
     def pred(self, X_val,tagli, I_val=None):
         #tagli
         t=[]
         #processi
         p=[]
-
+        
+        
         creaTagli(tagli,t,len(X_val))
+        
         work=JoinableQueue()
+        
+        #Conquerors non sono altro che i nodi che hanno conquistato i nodi di X_val su cui faremo mark_nodes() per settare i nodi Rilevanti e quelli non Rilevanti
         conquerors=Queue()
 
-        #ci vanno i risultati in ordine
+        #ci vanno i risultati in ordine giusto
         result=Array('i',len(X_val),lock=False)
-
+        
         creaProcFit(self.predConc,p,self._processi,work,X_val,result,conquerors)
-
+        
+        #Do il lavoro ai processi
         for i in range(len(t)):
             work.put(t[i])
-
+        
+        #Aspetto che terminano
         work.join()
-
+        
+        #termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)
         for i in range(self._processi):
             p[i].terminate()
 
-
+       #Marchio i nodi Rilevanti nel grafo
         while not conquerors.empty():
             self.subgraph.mark_nodes(conquerors.get())
 
@@ -685,6 +703,7 @@ class SSupervisedPOPF(OPF):
 
         return preds
 
+    
     def learn(self, xt, yt, xv, yv,tagli, n_iterations=10):
         """Learns the best classifier over a validation set.
 
@@ -696,7 +715,7 @@ class SSupervisedPOPF(OPF):
             n_iterations (int): Number of iterations.
 
         """
-
+        #Devo salvare i numpyArray del grafo con l'accuratezza maggiore
         X_val=copy.deepcopy(xv)
         X_train=copy.deepcopy(xt)
         Y_val=copy.deepcopy(yv)
@@ -733,7 +752,8 @@ class SSupervisedPOPF(OPF):
 
                 # Makes a copy of the best OPF classifier
                 best_opf = copy.deepcopy(self)
-
+                
+                #Salvo i numpyArray del classificatore con l'accuratezza maggiore
                 xt[:]=X_train[:]
                 xv[:]=X_val[:]
                 yt[:]=Y_train[:]
@@ -798,7 +818,7 @@ class SSupervisedPOPF(OPF):
             if delta < 0.0001 or t == n_iterations:
                 # Replaces current class with the best OPF
                 self.subgraph = best_opf.subgraph
-                self.pred(xt,6)
+                self.pred(xt,tagli)
 
                 # Breaks the loop
                 break
