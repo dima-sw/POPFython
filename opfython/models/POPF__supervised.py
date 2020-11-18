@@ -46,21 +46,22 @@ class SSupervisedPOPF(OPF):
                 self.subgraph.nodes[t].features, self.subgraph.nodes[s].features)
         return weight
 
-
+    #Find prototypes using MST approach
     def _find_prototypes(self,tagli):
         find_prot(self,tagli)
 
-
+    #Training
     def fit(self,X_train, Y_train,tagli):
         cfit(self,X_train,Y_train,tagli)
 
-
+    #Pruning
     def prune(self, X_train, Y_train, X_val, Y_val, tagli, M_loss, n_it=10):
         cprune(self,X_train, Y_train, X_val, Y_val, tagli, M_loss, n_iterations=n_it)
 
-
+    #Learning
     def learn(self, xt, yt, xv, yv, tagli, n_iterations=10):
         return clearn(self, xt, yt, xv, yv, tagli, n_iterations=n_iterations)
 
+    #Predict
     def pred(self, X_val, tagli):
         return cPred(self, X_val, tagli)
