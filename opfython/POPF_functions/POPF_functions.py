@@ -21,7 +21,7 @@ def creaTagli(tagli, parti, n):
 
 
 def calcMin(result):
-    
+
 
     r=result.get()
     s = r[0]

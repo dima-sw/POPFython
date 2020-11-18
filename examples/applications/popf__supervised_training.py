@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     tagli = 10
     # Loading a .txt file to a numpy array
-    txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\boat.txt')
+    txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
 
     # Parsing a pre-loaded numpy array
     X, Y = p.parse_loader(txt)
