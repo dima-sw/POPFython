@@ -45,6 +45,7 @@ def pruringRun(opf, acc, M_loss, tagli, n_iterations, X_train, Y_train, X_val, Y
     # mentre l'accuratezza attuale è >= (dell'accuratezza massima iniziale - M_loss) e mentre ci sta almeno un nodo non Rilevante (flag)
     while abs(acc - tmp) <= M_loss and flag:
         # Rimuovo i nodi irrillevanti, aggiorno X_train, Y_train, X_val,Y_val e vedo se ci sta almeno un nodo non rilevante con flag
+            #I nodi irrellevanti li rimuovi da X_train e Y_train e li aggiungo a X_val e Y_val
         flag, X_train, Y_train, X_val, Y_val = pruringUpdateList(opf.subgraph.nodes, X_train, Y_train, X_val, Y_val)
 
         # Faccio il learning e prendo l'accuratezza
