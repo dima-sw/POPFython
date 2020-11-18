@@ -21,12 +21,16 @@ def creaTagli(tagli, parti, n):
 
 
 def calcMin(result):
+
+    if result.empty():
+        raise Exception("Result is empty")
+
     r=result.get()
     s = r[0]
     min=r[1]
     while not result.empty():
         r=result.get()
-        if (min>r[1] and r[0]!=-1) or (s==-1 and r[0]!=-1):
+        if (min>r[1] or s==-1) and r[0]!=-1:
             s=r[0]
             min=r[1]
     return s
