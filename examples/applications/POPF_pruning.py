@@ -19,12 +19,12 @@ if __name__ == '__main__':
     X_train, X_val, Y_train, Y_val = s.split(
         X, Y, percentage=0.5, random_state=1)
 
-    # Creates a SupervisedOPF instance
+    # Creates a SupervisedPOPF instance
     opf = SSupervisedPOPF(processi=mp.cpu_count(),distance='log_squared_euclidean',
                         pre_computed_distance=None)
 
     # Performs the pruning procedure
-    opf.prune(X_train, Y_train, X_val, Y_val,10,0.05, n_iterations=3)
+    opf.prune(X_train, Y_train, X_val, Y_val,10,0.1, n_it=3)
     t2=time.time()
 
-    print(t2-t1)
+    print("time of prume: ",t2-t1)

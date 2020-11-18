@@ -29,3 +29,15 @@ def calcMin(result):
             s=r[0]
             min=r[1]
     return s
+
+def calcWeight(pre_computed_distancce,s,t):
+        if self.pre_computed_distance:
+            # Gathers the distance from the distance's matrix
+            weight = self.pre_distances[self.subgraph.nodes[s].idx][self.subgraph.nodes[t].idx]
+
+        # If the distance is supposed to be calculated
+        else:
+            # Calls the corresponding distance function
+            weight = self.distance_fn(
+                self.subgraph.nodes[t].features, self.subgraph.nodes[s].features)
+        return weight
