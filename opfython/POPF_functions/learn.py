@@ -9,7 +9,7 @@ import opfython.math.general as g
 logger = log.get_logger(__name__)
 
 
-def learn(self, xt, yt, xv, yv, tagli, n_iterations=10):
+def learn(opf, xt, yt, xv, yv, tagli, n_iterations=10):
     """Learns the best classifier over a validation set.
     Args:
         xt (np.array): Array of training features.
@@ -41,11 +41,11 @@ def learn(self, xt, yt, xv, yv, tagli, n_iterations=10):
         logger.info('Running iteration %d/%d ...', t + 1, n_iterations)
 
         # Fits training data into the classifier
-        self.fit(X_train, Y_train, tagli)
+        opf.fit(X_train, Y_train, tagli)
 
         # Predicts new data
-        # preds = self.pred(X_val,tagli)
-        preds = self.pred(X_val, tagli)
+        # preds = opf.pred(X_val,tagli)
+        preds = opf.pred(X_val, tagli)
         # Calculating accuracy
         acc = g.opf_accuracy(Y_val, preds)
 
@@ -55,7 +55,7 @@ def learn(self, xt, yt, xv, yv, tagli, n_iterations=10):
             max_acc = acc
 
             # Makes a copy of the best OPF classifier
-            best_opf = copy.deepcopy(self)
+            best_opf = copy.deepcopy(opf)
 
             # Salvo i numpyArray del classificatore con l'accuratezza maggiore
             xt[:] = X_train[:]
@@ -72,7 +72,7 @@ def learn(self, xt, yt, xv, yv, tagli, n_iterations=10):
         non_prototypes = 0
 
         # For every possible subgraph's node
-        for n in self.subgraph.nodes:
+        for n in opf.subgraph.nodes:
             # If the node is not a prototype
             if n.status != c.PROTOTYPE:
                 # Increments the number of non-prototypes
@@ -89,7 +89,7 @@ def learn(self, xt, yt, xv, yv, tagli, n_iterations=10):
                 j = int(r.generate_uniform_random_number(0, len(X_train)))
 
                 # If the node on that particular index is not a prototype
-                if self.subgraph.nodes[j].status != c.PROTOTYPE:
+                if opf.subgraph.nodes[j].status != c.PROTOTYPE:
                     # Swap the input nodes
                     X_train[j, :], X_val[err, :] = X_val[err, :], X_train[j, :]
 
@@ -121,8 +121,8 @@ def learn(self, xt, yt, xv, yv, tagli, n_iterations=10):
         # If the difference is smaller than 10e-4 or iterations are finished
         if delta < 0.0001 or t == n_iterations:
             # Replaces current class with the best OPF
-            self.subgraph = best_opf.subgraph
-            self.pred(X_val, tagli)
+            opf.subgraph = best_opf.subgraph
+            opf.pred(X_val, tagli)
             # Breaks the loop
             break
     print(max_acc)

@@ -5,7 +5,7 @@ import opfython.utils.logging as log
 logger = log.get_logger(__name__)
 
 
-def prune(self, X_train, Y_train, X_val, Y_val, tagli, M_loss, n_iterations=10):
+def prune(opf, X_train, Y_train, X_val, Y_val, tagli, M_loss, n_iterations=10):
     """Prunes a classifier over a validation set.
     Args:
         X_train (np.array): Array of training features.
@@ -19,16 +19,16 @@ def prune(self, X_train, Y_train, X_val, Y_val, tagli, M_loss, n_iterations=10):
     logger.info('Pruning classifier ...')
 
     # Faccio il primo learning e mi calcolo l'accuratezza massima
-    acc = self.learn(X_train, Y_train, X_val, Y_val, tagli, n_iterations=n_iterations)
+    acc = opf.learn(X_train, Y_train, X_val, Y_val, tagli, n_iterations=n_iterations)
 
     # Prendo i nodi iniziali del grafo
-    initial_nodes = self.subgraph.n_nodes
+    initial_nodes = opf.subgraph.n_nodes
 
     # Faccio partire il pruring
-    pruringRun(self,acc, M_loss, tagli, n_iterations, X_train, Y_train, X_val, Y_val)
+    pruringRun(opf,acc, M_loss, tagli, n_iterations, X_train, Y_train, X_val, Y_val)
 
     # Prendo i nodi a fine pruring
-    final_nodes = self.subgraph.n_nodes
+    final_nodes = opf.subgraph.n_nodes
     logger.info('Initial number of nodes: %s , final number of nodes: %s,', initial_nodes, final_nodes)
     # Calculating pruning ratio
     prune_ratio = 1 - final_nodes / initial_nodes
@@ -36,7 +36,7 @@ def prune(self, X_train, Y_train, X_val, Y_val, tagli, M_loss, n_iterations=10):
     logger.info('Prune ratio: %s.', prune_ratio)
 
 
-def pruringRun(self, acc, M_loss, tagli, n_iterations, X_train, Y_train, X_val, Y_val):
+def pruringRun(opf, acc, M_loss, tagli, n_iterations, X_train, Y_train, X_val, Y_val):
     # tmp= accuratezza attuale
     tmp = acc
     # flag serve per tenere traccia se ci sia ancora un nodo rilevante
@@ -45,10 +45,10 @@ def pruringRun(self, acc, M_loss, tagli, n_iterations, X_train, Y_train, X_val, 
     # mentre l'accuratezza attuale è >= (dell'accuratezza massima iniziale - M_loss) e mentre ci sta almeno un nodo non Rilevante (flag)
     while abs(acc - tmp) <= M_loss and flag:
         # Rimuovo i nodi irrillevanti, aggiorno X_train, Y_train, X_val,Y_val e vedo se ci sta almeno un nodo non rilevante con flag
-        flag, X_train, Y_train, X_val, Y_val = pruringUpdateList(self.subgraph.nodes, X_train, Y_train, X_val, Y_val)
+        flag, X_train, Y_train, X_val, Y_val = pruringUpdateList(opf.subgraph.nodes, X_train, Y_train, X_val, Y_val)
 
         # Faccio il learning e prendo l'accuratezza
-        tmp = self.learn(X_train, Y_train, X_val, Y_val, tagli, n_iterations=n_iterations)
+        tmp = opf.learn(X_train, Y_train, X_val, Y_val, tagli, n_iterations=n_iterations)
         logger.info('Current accuracy: %s.', tmp)
 
 

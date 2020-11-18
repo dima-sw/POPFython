@@ -5,7 +5,7 @@ import opfython.stream.splitter as s
 from opfython.models.POPF__supervised import SSupervisedPOPF
 import multiprocessing as mp
 import time
-from opfython.POPF_functions.predict import pred as cPred
+
 
 
 if __name__ == '__main__':

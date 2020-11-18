@@ -9,7 +9,7 @@ import time
 logger = log.get_logger(__name__)
 
 
-def fit(self, X_train, Y_train, tagli, I_train=None):
+def fit(opf, X_train, Y_train, tagli, I_train=None):
     """Fits data in the classifier.
     Args:
         X_train (np.array): Array of training features.
@@ -23,10 +23,10 @@ def fit(self, X_train, Y_train, tagli, I_train=None):
 
     # Creating a subgraph
 
-    self.subgraph = Subgraph(X_train, Y_train, I=I_train)
+    opf.subgraph = Subgraph(X_train, Y_train, I=I_train)
 
     # Finding prototypes
-    self._find_prototypes(tagli)
+    opf._find_prototypes(tagli)
 
     start = time.time()
 
@@ -36,13 +36,13 @@ def fit(self, X_train, Y_train, tagli, I_train=None):
                 U-> array degli used per vedere se gia' abbiamo usato il nodo
                 L-> array delle label
     """
-    P = Array('i', self.subgraph.n_nodes, lock=False)
-    C = Array('f', self.subgraph.n_nodes, lock=False)
-    L = Array('i', self.subgraph.n_nodes, lock=False)
-    U = Array('i', self.subgraph.n_nodes, lock=False)
+    P = Array('i', opf.subgraph.n_nodes, lock=False)
+    C = Array('f', opf.subgraph.n_nodes, lock=False)
+    L = Array('i', opf.subgraph.n_nodes, lock=False)
+    U = Array('i', opf.subgraph.n_nodes, lock=False)
 
     # Inizializzo gli array e prendo il primo prototipo
-    primo = initGraphFit(self, U, C, P, L)
+    primo = initGraphFit(opf, U, C, P, L)
 
     # Mi conservo i processi, serve durante il pruring per non intasare la memoria con processi
     processi = []
@@ -51,29 +51,29 @@ def fit(self, X_train, Y_train, tagli, I_train=None):
     result = Queue()
 
     # creo e faccio partire i processi
-    creaProcFit(train, processi, self._processi, self, P, C, L, U, work, result)
+    creaProcFit(train, processi, opf._processi, opf, P, C, L, U, work, result)
 
     """parti= [[0,n_nodi/tagli],...,[(tagli-1)*(n_nodi/tagli),n_nodi]]"""  # partizionato in n parti uguali con n=tagli
     parti = []
-    creaTagli(tagli, parti, self.subgraph.n_nodes)
+    creaTagli(tagli, parti, opf.subgraph.n_nodes)
 
     # prendo il primo prototipo
     s = primo
 
     # Inizia il vero e proprio training
-    fitCompute(self, s, U, C, work, result, tagli, parti)
+    fitCompute(opf, s, U, C, work, result, tagli, parti)
 
     # termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)
-    for i in range(self._processi):
+    for i in range(opf._processi):
         processi[i].terminate()
 
     # aggiorno pred e label dei nodi
-    for j in range(0, self.subgraph.n_nodes):
-        self.subgraph.nodes[j].pred = P[j]
-        self.subgraph.nodes[j].predicted_label = L[j]
+    for j in range(0, opf.subgraph.n_nodes):
+        opf.subgraph.nodes[j].pred = P[j]
+        opf.subgraph.nodes[j].predicted_label = L[j]
 
     # The subgraph has been properly trained
-    self.subgraph.trained = True
+    opf.subgraph.trained = True
 
     # Ending timer
     end = time.time()
@@ -85,19 +85,19 @@ def fit(self, X_train, Y_train, tagli, I_train=None):
     logger.info('Training time: %s seconds.', train_time)
 
 #Inizializzo gli array per il training in base se un nodo è un prototipo o meno
-def initGraphFit(self,U,C,P,L):
+def initGraphFit(opf,U,C,P,L):
         flag = True  # per prendere il primo prototipo
 
         # For each possible node
-        for i in range(self.subgraph.n_nodes):
+        for i in range(opf.subgraph.n_nodes):
             U[i] = 0
             # Checks if node is a prototype
-            if self.subgraph.nodes[i].status == c.PROTOTYPE:
+            if opf.subgraph.nodes[i].status == c.PROTOTYPE:
 
                 """Se e' un prototipo Costo=0, Pred=nil, Label=la stessa del nodo"""
                 C[i] = 0
                 P[i] = c.NIL
-                L[i] = self.subgraph.nodes[i].label
+                L[i] = opf.subgraph.nodes[i].label
                 # prendo il primo prototipo
                 if flag:
                     primo = i
@@ -108,14 +108,14 @@ def initGraphFit(self,U,C,P,L):
                 """se non è un prototipo Costo=MAX, Pred=lo stesso del nodo,  label=nil"""
 
                 C[i] = c.FLOAT_MAX
-                P[i] = self.subgraph.nodes[i].pred
+                P[i] = opf.subgraph.nodes[i].pred
                 L[i] = c.NIL
 
         return primo
 
 
 #La parte del training
-def fitCompute(self,s,U,C,work,result,tagli,parti):
+def fitCompute(opf,s,U,C,work,result,tagli,parti):
         """Percentuali per la stampa del tempo stimato e a che % stiamo"""
 
         """percent = 0
@@ -134,10 +134,10 @@ def fitCompute(self,s,U,C,work,result,tagli,parti):
             U[s] = 1
 
             # Lo aggiungo alla lista ordinata
-            self.subgraph.idx_nodes.append(s)
+            opf.subgraph.idx_nodes.append(s)
 
             # Gathers its cost
-            self.subgraph.nodes[s].cost = C[s]
+            opf.subgraph.nodes[s].cost = C[s]
 
             # Metto nella JoinableQueue tutte le partizioni e il nodo su cui operare
             for i in range(tagli):
@@ -151,7 +151,7 @@ def fitCompute(self,s,U,C,work,result,tagli,parti):
             s = calcMin(result)
 
             # Tengo traccia a che punto sta, per file grossi è comodo
-            """percnew = (percent / self.subgraph.n_nodes) * 100
+            """percnew = (percent / opf.subgraph.n_nodes) * 100
             #Sempre per tenere traccia
             if (percnew > percOld):
                 endPerc = time.time()
@@ -164,7 +164,7 @@ def fitCompute(self,s,U,C,work,result,tagli,parti):
 
 
 #Parte concorrente del training
-def train(self, P,C,L,U, work, result):
+def train(opf, P,C,L,U, work, result):
 
 
         while True:
@@ -172,7 +172,7 @@ def train(self, P,C,L,U, work, result):
             r1,r2, s = work.get()
 
             # s1 dovrà essere il nodo non usato con il costo più piccolo, workInRange è proprio il lavoro che svolte il processo nel range r1,r2 (for interno)
-            s1 = workInRange(self,s,r1,r2,C,L,P,U)
+            s1 = workInRange(opf,s,r1,r2,C,L,P,U)
 
 
             # s1=None significa che ogni nodo di questo range è già stato used
@@ -184,7 +184,7 @@ def train(self, P,C,L,U, work, result):
             work.task_done()
 
 
-def workInRange(self,s,r1,r2,C,L,P,U):
+def workInRange(opf,s,r1,r2,C,L,P,U):
         s1=None
         # lavoro solo nel range preso dalla work.get() r1,r2
         for t in range(r1, r2):
@@ -196,7 +196,7 @@ def workInRange(self,s,r1,r2,C,L,P,U):
                 if C[t] > C[s]:
 
                     #calcolo la distanza tra s e t
-                    weight = self.calcWeight(s, t)
+                    weight = opf.calcWeight(s, t)
 
                     # Il costo corrente sarà il massimo tra il costo dell'arco tra i due nodi (weight, l'arco in realtà non esiste) e il nodo s
                     current_cost = np.maximum(C[s], weight)

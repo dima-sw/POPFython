@@ -6,7 +6,7 @@ import time
 
 logger = log.get_logger(__name__)
 
-def _find_prototypes(self, tagli):
+def _find_prototypes(opf, tagli):
     """Find prototype nodes using the Minimum Spanning Tree (MST) approach.
     """
 
@@ -19,17 +19,17 @@ def _find_prototypes(self, tagli):
         C-> array dei costi
         U-> array degli used per vedere se gia' abbiamo usato il nodo
     """
-    P = Array('i', self.subgraph.n_nodes, lock=False)
-    C = Array('f', self.subgraph.n_nodes, lock=False)
-    U = Array('i', self.subgraph.n_nodes, lock=False)
+    P = Array('i', opf.subgraph.n_nodes, lock=False)
+    C = Array('f', opf.subgraph.n_nodes, lock=False)
+    U = Array('i', opf.subgraph.n_nodes, lock=False)
 
     # Inizialmente C =max e P= nil
-    for i in range(self.subgraph.n_nodes):
+    for i in range(opf.subgraph.n_nodes):
         C[i] = c.FLOAT_MAX
         P[i] = c.NIL
 
     # Marking first node without any predecessor
-    self.subgraph.nodes[0].pred = c.NIL
+    opf.subgraph.nodes[0].pred = c.NIL
     P[0] = c.NIL
 
     # primo nodo
@@ -43,21 +43,21 @@ def _find_prototypes(self, tagli):
     result = Queue()
 
     # creo i processi
-    creaProcFit(protParal, processi, self._processi,self, P, C, U, work, result)
+    creaProcFit(protParal, processi, opf._processi,opf, P, C, U, work, result)
     parti = []
-    creaTagli(tagli, parti, self.subgraph.n_nodes)
+    creaTagli(tagli, parti, opf.subgraph.n_nodes)
 
     # Inizia ufficialmente a trovare i prototipi con MST
 
-    start_find_prototypes(self, p, U, P, C, prototypes, tagli, work, parti, result)
+    start_find_prototypes(opf, p, U, P, C, prototypes, tagli, work, parti, result)
 
     # termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)
-    for i in range(self._processi):
+    for i in range(opf._processi):
         processi[i].terminate()
 
     # Aggiorno il grafo
-    for i in range(self.subgraph.n_nodes):
-        self.subgraph.nodes[i].pred = P[i]
+    for i in range(opf.subgraph.n_nodes):
+        opf.subgraph.nodes[i].pred = P[i]
 
     end = time.time()
     fittime = end - start
@@ -65,26 +65,26 @@ def _find_prototypes(self, tagli):
     logger.info('Prototypes found in: %s seconds.', fittime)
 
 
-def updateProt(self, prototypes, p, pred):
+def updateProt(opf, prototypes, p, pred):
     # Checks if the label of current node is the same as its predecessor
-    if self.subgraph.nodes[p].label != self.subgraph.nodes[pred].label:
+    if opf.subgraph.nodes[p].label != opf.subgraph.nodes[pred].label:
         # If current node is not a prototype
-        if self.subgraph.nodes[p].status != c.PROTOTYPE:
+        if opf.subgraph.nodes[p].status != c.PROTOTYPE:
             # Marks it as a prototype
-            self.subgraph.nodes[p].status = c.PROTOTYPE
+            opf.subgraph.nodes[p].status = c.PROTOTYPE
             # Appends current node identifier to the prototype's list
             prototypes.append(p)
 
         # If predecessor node is not a prototype
-        if self.subgraph.nodes[pred].status != c.PROTOTYPE:
+        if opf.subgraph.nodes[pred].status != c.PROTOTYPE:
             # Marks it as a protoype
-            self.subgraph.nodes[pred].status = c.PROTOTYPE
+            opf.subgraph.nodes[pred].status = c.PROTOTYPE
 
             # Appends predecessor node identifier to the prototype's list
             prototypes.append(pred)
 
 
-def start_find_prototypes(self, p, U, P, C, prototypes, tagli, work, parti, result):
+def start_find_prototypes(opf, p, U, P, C, prototypes, tagli, work, parti, result):
     """percent = 0
                    percOld = 1
                    flagTime = True """
@@ -97,7 +97,7 @@ def start_find_prototypes(self, p, U, P, C, prototypes, tagli, work, parti, resu
             flagTime = False"""
 
         # Gathers its cost
-        self.subgraph.nodes[p].cost = C[p]
+        opf.subgraph.nodes[p].cost = C[p]
 
         # And also its predecessor
         pred = P[p]
@@ -107,7 +107,7 @@ def start_find_prototypes(self, p, U, P, C, prototypes, tagli, work, parti, resu
 
         # If the predecessor is not NIL update prototypes
         if pred != c.NIL:
-            updateProt(self,prototypes, p, pred)
+            updateProt(opf,prototypes, p, pred)
 
         # Metto le suddivisioni e p in work
         for i in range(tagli):
@@ -119,7 +119,7 @@ def start_find_prototypes(self, p, U, P, C, prototypes, tagli, work, parti, resu
         # prendo il minimo
         p = calcMin(result)
 
-        """percnew = (percent / self.subgraph.n_nodes) * 100
+        """percnew = (percent / opf.subgraph.n_nodes) * 100
         if (percnew > percOld):
             endPerc = time.time()
             percOld += 1
@@ -133,7 +133,7 @@ def start_find_prototypes(self, p, U, P, C, prototypes, tagli, work, parti, resu
 
 
 # La parte concorrente di find_prototypes
-def protParal(self, P, C, U, work, result):
+def protParal(opf, P, C, U, work, result):
     while True:
         # prendo un range e il nodo p
         r1, r2, p = work.get()
@@ -147,7 +147,7 @@ def protParal(self, P, C, U, work, result):
                 # If `p` and `q` identifiers are different
                 if p != q:
 
-                    weight = self.calcWeight(p, q)
+                    weight = opf.calcWeight(p, q)
                     # If current arc's cost is smaller than the path's cost
                     if weight < C[q]:
                         # Marks `q` predecessor node as `p`
