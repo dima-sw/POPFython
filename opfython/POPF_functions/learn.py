@@ -17,6 +17,7 @@ def learn(self, xt, yt, xv, yv, tagli, n_iterations=10):
         xv (np.array): Array of validation features.
         yv (np.array): Array of validation labels.
         n_iterations (int): Number of iterations.
+
     """
     # Devo salvare i numpyArray del grafo con l'accuratezza maggiore
     X_val = copy.deepcopy(xv)

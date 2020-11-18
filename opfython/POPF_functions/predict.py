@@ -13,6 +13,7 @@ logger = log.get_logger(__name__)
 def predConc(self, work, X_val, result, conquerors):
     while True:
         # predno il range su cui fare il predict
+
         ran = work.get()
         # faccio il predict su un range di X_val
         pred = predict(self,X_val[ran[0]:ran[1]],coda=conquerors)

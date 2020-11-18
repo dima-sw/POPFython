@@ -19,6 +19,7 @@ def creaTagli(tagli, parti, n):
             r2 = int(r1 + (n / tagli))
         parti.append((r1, r2))
 
+
 def calcMin(result):
     r=result.get()
     s = r[0]

@@ -48,6 +48,7 @@ def _find_prototypes(self, tagli):
     creaTagli(tagli, parti, self.subgraph.n_nodes)
 
     # Inizia ufficialmente a trovare i prototipi con MST
+
     start_find_prototypes(self, p, U, P, C, prototypes, tagli, work, parti, result)
 
     # termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)

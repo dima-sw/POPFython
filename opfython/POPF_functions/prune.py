@@ -13,6 +13,7 @@ def prune(self, X_train, Y_train, X_val, Y_val, tagli, M_loss, n_iterations=10):
         X_val (np.array): Array of validation features.
         Y_val (np.array): Array of validation labels.
         n_iterations (int): Maximum number of iterations of learning.
+
     """
 
     logger.info('Pruning classifier ...')

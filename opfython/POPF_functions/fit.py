@@ -143,6 +143,7 @@ def fitCompute(self,s,U,C,work,result,tagli,parti):
             for i in range(tagli):
                 work.put((parti[i][0], parti[i][1], s))
 
+
             # Aspetto che la coda si svuota
             work.join()
 
