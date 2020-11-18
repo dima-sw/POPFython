@@ -1,19 +1,9 @@
-"""Supervised Optimum-Path Forest.
+"""Supervised Parallel Optimum-Path Forest.
 """
 
-
-import time
-
-import numpy as np
-import copy
-import opfython.math.random as r
-import opfython.utils.constants as c
-import opfython.utils.exception as e
 import opfython.utils.logging as log
-from opfython.core import  Subgraph,OPF
-import opfython.math.general as g
-from multiprocessing import JoinableQueue, Process, Queue, Array
-from opfython.POPF_functions.POPF_functions import creaProcFit,creaTagli,calcMin
+from opfython.core import OPF
+
 
 from opfython.POPF_functions.predict import pred as cPred
 from opfython.POPF_functions.find_prot import _find_prototypes as find_prot
