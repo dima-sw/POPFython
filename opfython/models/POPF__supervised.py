@@ -20,11 +20,7 @@ logger = log.get_logger(__name__)
 
 
 class SSupervisedPOPF(OPF):
-    """A SupervisedOPF which implements the supervised version of OPF classifier.
-
-    References:
-        J. P. Papa, A. X. Falcão and C. T. N. Suzuki. Supervised Pattern Classification based on Optimum-Path Forest.
-        International Journal of Imaging Systems and Technology (2009).
+    """
 
     """
 
