@@ -21,7 +21,7 @@ def prune(opf, X_train, Y_train, X_val, Y_val, tagli, M_loss, n_iterations=10):
     # Faccio il primo learning e mi calcolo l'accuratezza massima
     acc = opf.learn(X_train, Y_train, X_val, Y_val, tagli, n_iterations=n_iterations)
 
-    # Prendo i nodi iniziali del grafo
+    # Prendo il numero di nodi iniziali del grafo
     initial_nodes = opf.subgraph.n_nodes
 
     # Faccio partire il pruring
@@ -39,7 +39,7 @@ def prune(opf, X_train, Y_train, X_val, Y_val, tagli, M_loss, n_iterations=10):
 def pruringRun(opf, acc, M_loss, tagli, n_iterations, X_train, Y_train, X_val, Y_val):
     # tmp= accuratezza attuale
     tmp = acc
-    # flag serve per tenere traccia se ci sia ancora un nodo rilevante
+    # flag serve per tenere traccia se ci sia ancora un nodo non rilevante
     flag = True
 
     # mentre l'accuratezza attuale è >= (dell'accuratezza massima iniziale - M_loss) e mentre ci sta almeno un nodo non Rilevante (flag)

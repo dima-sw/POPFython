@@ -86,8 +86,8 @@ def updateProt(opf, prototypes, p, pred):
 
 def start_find_prototypes(opf, p, U, P, C, prototypes, tagli, work, parti, result):
     """percent = 0
-                   percOld = 1
-                   flagTime = True """
+       percOld = 1
+       flagTime = True """
 
     # Finchè tutti i nodi non sono used
     while p != -1:

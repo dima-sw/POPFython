@@ -63,7 +63,7 @@ def fit(opf, X_train, Y_train, tagli, I_train=None):
     # Inizia il vero e proprio training
     fitCompute(opf, s, U, C, work, result, tagli, parti)
 
-    # termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)
+    # termino i processi (Utile per non intasare la memoria con processi quando si usa il pruning)
     for i in range(opf._processi):
         processi[i].terminate()
 
@@ -116,8 +116,9 @@ def initGraphFit(opf,U,C,P,L):
 
 #La parte del training
 def fitCompute(opf,s,U,C,work,result,tagli,parti):
-        """Percentuali per la stampa del tempo stimato e a che % stiamo"""
 
+
+        """Percentuali per la stampa del tempo stimato e a che % stiamo"""
         """percent = 0
         percOld = 1
         flagTime = True """
@@ -147,7 +148,7 @@ def fitCompute(opf,s,U,C,work,result,tagli,parti):
             # Aspetto che la coda si svuota
             work.join()
 
-            # prendo il minimo
+            #prendo il più piccolo s
             s = calcMin(result)
 
             # Tengo traccia a che punto sta, per file grossi è comodo
@@ -171,7 +172,7 @@ def train(opf, P,C,L,U, work, result):
             #vedo se c'è un range sul quale lavorare
             r1,r2, s = work.get()
 
-            # s1 dovrà essere il nodo non usato con il costo più piccolo, workInRange è proprio il lavoro che svolte il processo nel range r1,r2 (for interno)
+            # s1 dovrà essere il nodo non usato con il costo più piccolo, workInRange è proprio il lavoro che svolge il processo nel range r1,r2 (for interno)
             s1 = workInRange(opf,s,r1,r2,C,L,P,U)
 
 
