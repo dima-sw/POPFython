@@ -1,10 +1,18 @@
 from multiprocessing import Process, Queue, JoinableQueue
+from threading import Thread
 
 def creaProcFit(target, processi,nproc, *args):
     for i in range(nproc):
         processi.append(Process(target=target, args=(args)))
         processi[i].daemon = True
         processi[i].start()
+
+def creaThreadFit(target, processi,nproc, *args):
+    for i in range(nproc):
+        processi.append(Thread(target=target, args=(args)))
+        processi[i].daemon = True
+        processi[i].start()
+
 
 
 def creaTagli(tagli, parti, n):
@@ -32,4 +40,3 @@ def calcMin(result):
             s=r[0]
             min=r[1]
     return s
-

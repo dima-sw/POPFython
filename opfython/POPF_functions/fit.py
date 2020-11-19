@@ -9,7 +9,7 @@ import time
 logger = log.get_logger(__name__)
 
 
-def fit(opf, X_train, Y_train, tagli, I_train=None):
+def fit(opf, X_train, Y_train,I_train=None):
     """Fits data in the classifier.
     Args:
         X_train (np.array): Array of training features.
@@ -26,7 +26,7 @@ def fit(opf, X_train, Y_train, tagli, I_train=None):
     opf.subgraph = Subgraph(X_train, Y_train, I=I_train)
 
     # Finding prototypes
-    opf._find_prototypes(tagli)
+    opf._find_prototypes()
 
     start = time.time()
 
@@ -53,15 +53,15 @@ def fit(opf, X_train, Y_train, tagli, I_train=None):
     # creo e faccio partire i processi
     creaProcFit(train, processi, opf._processi, opf, P, C, L, U, work, result)
 
-    """parti= [[0,n_nodi/tagli],...,[(tagli-1)*(n_nodi/tagli),n_nodi]]"""  # partizionato in n parti uguali con n=tagli
+    """parti= [[0,n_nodi/tagli],...,[(tagli-1)*(n_nodi/tagli),n_nodi]]"""  # partiziono in n parti uguali con n=tagli
     parti = []
-    creaTagli(tagli, parti, opf.subgraph.n_nodes)
+    creaTagli(opf._tagli, parti, opf.subgraph.n_nodes)
 
     # prendo il primo prototipo
     s = primo
 
     # Inizia il vero e proprio training
-    fitCompute(opf, s, U, C, work, result, tagli, parti)
+    fitCompute(opf, s, U, C, work, result,parti)
 
     # termino i processi (Utile per non intasare la memoria con processi quando si usa il pruning)
     for i in range(opf._processi):
@@ -115,7 +115,7 @@ def initGraphFit(opf,U,C,P,L):
 
 
 #La parte del training
-def fitCompute(opf,s,U,C,work,result,tagli,parti):
+def fitCompute(opf,s,U,C,work,result,parti):
 
 
         """Percentuali per la stampa del tempo stimato e a che % stiamo"""
@@ -123,9 +123,9 @@ def fitCompute(opf,s,U,C,work,result,tagli,parti):
         percOld = 1
         flagTime = True """
 
+
         # quando avrò computato tutti i nodi s sarà = -1
         while s != -1:
-
             """tempo stimato e %"""
             """if flagTime:
                 startPerc = time.time()
@@ -141,11 +141,11 @@ def fitCompute(opf,s,U,C,work,result,tagli,parti):
             opf.subgraph.nodes[s].cost = C[s]
 
             # Metto nella JoinableQueue tutte le partizioni e il nodo su cui operare
-            for i in range(tagli):
+            for i in range(opf._tagli):
                 work.put((parti[i][0], parti[i][1], s))
 
 
-            # Aspetto che la coda si svuota
+            # Aspetto che i worker finiscano
             work.join()
 
             #prendo il più piccolo s
@@ -158,11 +158,10 @@ def fitCompute(opf,s,U,C,work,result,tagli,parti):
                 endPerc = time.time()
                 percOld += 1
                 print("Training %" + str(int(percnew)))
-                print("Estimeted time: " + str((endPerc - startPerc) * (100 - percnew)) + " seconds")
+                
+                ("Estimeted time: " + str((endPerc - startPerc) * (100 - percnew)) + " seconds")
                 flagTime = True
             percent += 1"""
-
-
 
 #Parte concorrente del training
 def train(opf, P,C,L,U, work, result):
@@ -172,16 +171,18 @@ def train(opf, P,C,L,U, work, result):
             #vedo se c'è un range sul quale lavorare
             r1,r2, s = work.get()
 
-            # s1 dovrà essere il nodo non usato con il costo più piccolo, workInRange è proprio il lavoro che svolge il processo nel range r1,r2 (for interno)
+            # s1 dovrà essere il nodo non usato con il costo più piccolo,
+            # workInRange è proprio il lavoro che svolge il processo nel range r1,r2 (for interno)
             s1 = workInRange(opf,s,r1,r2,C,L,P,U)
 
 
-            # s1=None significa che ogni nodo di questo range è già stato used
+            # s1=None significa che ogni nodo di questo range è già stato used e restituiamo -1
             if s1 == None:
-                s1 = -1
+                result.put((-1,-1))
             # restituisco il risultato al processo principale
-            result.put((s1, C[s1]))
-            #finisco su questo range
+            else:
+                result.put((s1, C[s1]))
+            # finisco su questo range
             work.task_done()
 
 

@@ -9,7 +9,7 @@ import opfython.math.general as g
 logger = log.get_logger(__name__)
 
 
-def learn(opf, xt, yt, xv, yv, tagli, n_iterations=10):
+def learn(opf, xt, yt, xv, yv,n_iterations=10):
     """Learns the best classifier over a validation set.
     Args:
         xt (np.array): Array of training features.
@@ -41,11 +41,12 @@ def learn(opf, xt, yt, xv, yv, tagli, n_iterations=10):
         logger.info('Running iteration %d/%d ...', t + 1, n_iterations)
 
         # Fits training data into the classifier
-        opf.fit(X_train, Y_train, tagli)
+        opf.fit(X_train, Y_train)
 
         # Predicts new data
+
         # preds = opf.pred(X_val,tagli)
-        preds = opf.pred(X_val, tagli)
+        preds = opf.pred(X_val)
         # Calculating accuracy
         acc = g.opf_accuracy(Y_val, preds)
 
@@ -122,8 +123,7 @@ def learn(opf, xt, yt, xv, yv, tagli, n_iterations=10):
         if delta < 0.0001 or t == n_iterations:
             # Replaces current class with the best OPF
             opf.subgraph = best_opf.subgraph
-            opf.pred(X_val, tagli)
+            opf.pred(X_val)
             # Breaks the loop
             break
-    print(max_acc)
     return max_acc

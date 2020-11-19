@@ -9,7 +9,7 @@ import time
 
 
 if __name__ == '__main__':
-    t1 = time.time()
+
 
     tagli = 10
     # Loading a .txt file to a numpy array
@@ -25,19 +25,19 @@ if __name__ == '__main__':
 
 
     # Creates a SupervisedPOPF instance
-    opf = SSupervisedPOPF(processi=mp.cpu_count()
+    opf = SSupervisedPOPF(processi=mp.cpu_count(),tagli=tagli
                              ,distance='log_squared_euclidean',
                             pre_computed_distance=None)
 
+    t1 = time.time()
 
-    opf.fit(X_train, Y_train, tagli)
-    preds=opf.pred(X_test,tagli)
+    opf.fit(X_train, Y_train)
+    preds=opf.pred(X_test)
 
     acc = g.opf_accuracy(Y_test, preds)
-    print(f'Accuracy: {acc}')
 
     t2 = time.time()
     tot = t2 - t1
 
     print("Tempo: ", tot)
-
+    print(f'Accuracy: {acc}')

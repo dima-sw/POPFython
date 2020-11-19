@@ -29,7 +29,7 @@ def parse_loader(data):
 
         # Second column should be the label
         Y = data[:, 1]
-        print(data)
+
         # Calculates the amount of samples per class
         _, counts = np.unique(Y, return_counts=True)
 

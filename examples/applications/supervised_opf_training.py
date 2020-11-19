@@ -5,7 +5,7 @@ import opfython.stream.splitter as s
 from opfython.models import SupervisedOPF
 import time
 
-t1=time.time()
+
 # Loading a .txt file to a numpy array
 txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
 
@@ -20,6 +20,7 @@ X_train, X_test, Y_train, Y_test = s.split(
 opf = SupervisedOPF(distance='log_squared_euclidean',
                     pre_computed_distance=None)
 
+t1=time.time()
 # Fits training data into the classifier
 opf.fit(X_train, Y_train)
 

@@ -6,7 +6,7 @@ import time
 
 logger = log.get_logger(__name__)
 
-def _find_prototypes(opf, tagli):
+def _find_prototypes(opf):
     """Find prototype nodes using the Minimum Spanning Tree (MST) approach.
     """
 
@@ -37,6 +37,8 @@ def _find_prototypes(opf, tagli):
 
     # Creating a list of prototype nodes
     prototypes = []
+
+    #La lista dei processi serve per terminarli alla fine, utile quando si utilizza il pruning per non intasare la memoria
     processi = []
 
     work = JoinableQueue()
@@ -44,12 +46,13 @@ def _find_prototypes(opf, tagli):
 
     # creo i processi
     creaProcFit(protParal, processi, opf._processi,opf, P, C, U, work, result)
+
+    #Partiziono
     parti = []
-    creaTagli(tagli, parti, opf.subgraph.n_nodes)
+    creaTagli(opf._tagli, parti, opf.subgraph.n_nodes)
 
     # Inizia ufficialmente a trovare i prototipi con MST
-
-    start_find_prototypes(opf, p, U, P, C, prototypes, tagli, work, parti, result)
+    start_find_prototypes(opf, p, U, P, C, prototypes, work, parti, result)
 
     # termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)
     for i in range(opf._processi):
@@ -84,7 +87,7 @@ def updateProt(opf, prototypes, p, pred):
             prototypes.append(pred)
 
 
-def start_find_prototypes(opf, p, U, P, C, prototypes, tagli, work, parti, result):
+def start_find_prototypes(opf, p, U, P, C, prototypes, work, parti, result):
     """percent = 0
        percOld = 1
        flagTime = True """
@@ -110,7 +113,7 @@ def start_find_prototypes(opf, p, U, P, C, prototypes, tagli, work, parti, resul
             updateProt(opf,prototypes, p, pred)
 
         # Metto le suddivisioni e p in work
-        for i in range(tagli):
+        for i in range(opf._tagli):
             work.put((parti[i][0], parti[i][1], p))
 
         # Aspetto che finiscono i processi
@@ -160,9 +163,11 @@ def protParal(opf, P, C, U, work, result):
                         if U[q] == 0:
                             s1 = q
 
-        # s1=None significa che ogni nodo di questo range è stato used
+
+        # s1=None significa che ogni nodo di questo range è già stato used e restituiamo -1
         if s1 == None:
-            s1 = -1
-        # restituisco il risultato al processo principale il più piccolo s1 e il suo costo
-        result.put((s1, C[s1]))
+            result.put((-1, -1))
+        # restituisco il risultato al processo principale
+        else:
+            result.put((s1, C[s1]))
         work.task_done()

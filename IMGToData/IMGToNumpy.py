@@ -16,7 +16,7 @@ def convertIMG(nAnimali,nCartelle,label,risoluzione,path,pathCartelle):
 
 
     listImg=""
-    daat= open("../../data/animal.txt", "w")
+    daat= open("../../data/image.txt", "w")
     pp=[]
     for label in range(int(nCartelle)):
         j=0
@@ -106,9 +106,6 @@ def takeImgNP(path,risoluzione):
     for z in parzIMG:
         parz=[]
         data = asarray(z.resize((risoluzione, risoluzione)))
-        #data = data.astype('float32')
-        #data /= 255
-        #data = data - data.mean()
         for d in data:
             for k in d:
                 parz.append(k)

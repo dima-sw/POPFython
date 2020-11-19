@@ -1,96 +1,22 @@
-from multiprocessing import JoinableQueue, Queue,Array
-import opfython.utils.logging as log
-import opfython.utils.exception as e
-from opfython.POPF_functions.POPF_functions import creaTagli,creaProcFit
-from opfython.core import  Subgraph
-import numpy as np
 import time
+import numpy as np
+import opfython.utils.exception as e
+import opfython.utils.logging as log
+from opfython.core import Subgraph
 
 
 logger = log.get_logger(__name__)
 
-# Parte cocorrente per il preict
-def predConc(opf, work, X_val, result, conquerors):
-    while True:
-        # predno il range su cui fare il predict
-
-        ran = work.get()
-        # faccio il predict su un range di X_val
-
-        pred = predict(opf,X_val[ran[0]:ran[1]],coda=conquerors)
-
-        j = 0
-        # mi salvo i pred nell'ordine giusto
-        for i in range(ran[0], ran[1]):
-            result[i] = pred[j]
-            j += 1
-
-        work.task_done()
-
-
-def pred(opf, X_val,I_val=None):
-    logger.info('Predicting data ...')
-
-
-    if(len(X_val)<500):
-        return predict(opf,X_val,I_val=I_val)
-
-    # Initializing the timer
-    start = time.time()
-    # tagli
-    t = []
-    # processi
-    p = []
-
-
-    creaTagli(opf._tagli, t, len(X_val))
-
-    work = JoinableQueue()
-
-    # Conquerors non sono altro che i nodi che hanno conquistato i nodi di X_val su cui faremo mark_nodes() per settare i nodi Rilevanti e quelli non Rilevanti
-    conquerors = Queue()
-
-    # ci vanno i risultati in ordine giusto
-    result = Array('i', len(X_val), lock=False)
-
-    creaProcFit(predConc, p, opf._processi,opf, work, X_val, result, conquerors)
-
-    # Do il lavoro ai processi
-    for i in range(len(t)):
-        work.put(t[i])
-
-    # Aspetto che terminano
-    work.join()
-
-    # termino i processi (Utile per non intasare la memoria con processi quando si usa il pruring)
-    for i in range(opf._processi):
-        p[i].terminate()
-
-    # Marchio i nodi Rilevanti nel grafo
-    while not conquerors.empty():
-        opf.subgraph.mark_nodes(conquerors.get())
-
-    # Ending timer
-    end = time.time()
-
-    # Calculating prediction task time
-    predict_time = end - start
-
-    logger.info('Data has been predicted.')
-    logger.info('Prediction time: %s seconds.', predict_time)
-
-    return result
-
-
-
-
-def predict(opf, X_val, coda=None, I_val=None):
+def predict(opf, X_val, I_val=None):
     """Predicts new data using the pre-trained classifier.
+
     Args:
         X_val (np.array): Array of validation or test features.
         I_val (np.array): Array of validation or test indexes.
+
     Returns:
         A list of predictions for each record of the data.
+
     """
 
     # Checks if there is a subgraph
@@ -103,31 +29,14 @@ def predict(opf, X_val, coda=None, I_val=None):
         # If not, raises an BuildError
         raise e.BuildError('Classifier has not been properly fitted')
 
+    logger.info('Predicting data ...')
+
     # Initializing the timer
     start = time.time()
 
     # Creating a prediction subgraph
     pred_subgraph = Subgraph(X_val, I=I_val)
 
-    startPredict(opf,pred_subgraph,coda=coda)
-
-    # Creating the list of predictions
-    preds = [pred.predicted_label for pred in pred_subgraph.nodes]
-
-    if coda==None:
-        # Ending timer
-        end = time.time()
-
-        # Calculating prediction task time
-        predict_time = end - start
-
-        logger.info('Data has been predicted.')
-        logger.info('Prediction time: %s seconds.', predict_time)
-
-    return preds
-
-
-def startPredict(opf,pred_subgraph,coda=None):
     # For every possible node
     for i in range(pred_subgraph.n_nodes):
         # Initializing the conqueror node
@@ -198,7 +107,18 @@ def startPredict(opf,pred_subgraph,coda=None):
         # Checks if any node has been conquered
         if conqueror > -1:
             # Marks the conqueror node and its path
-            if coda is not None:
-                coda.put(conqueror)
-            else:
-                opf.subgraph.mark_nodes(conqueror)
+            opf.subgraph.mark_nodes(conqueror)
+
+    # Creating the list of predictions
+    preds = [pred.predicted_label for pred in pred_subgraph.nodes]
+
+    # Ending timer
+    end = time.time()
+
+    # Calculating prediction task time
+    predict_time = end - start
+
+    logger.info('Data has been predicted.')
+    logger.info('Prediction time: %s seconds.', predict_time)
+
+    return preds

@@ -1,6 +1,6 @@
 import random
 
-def creaGig():
+def creaGig(n):
     giganti=open("../../data/nug.txt", "w")
     #altezza, età, peso,
     carU=[(150,190),(19,50),(55,90)]
@@ -11,7 +11,7 @@ def creaGig():
 
 
 
-    for j in range(5000):
+    for j in range(n):
         #for j in range(2000):
 
             i= random.randint(0,3)
@@ -20,5 +20,5 @@ def creaGig():
 
     giganti.close()
 
-creaGig()
+creaGig(1000)
 
