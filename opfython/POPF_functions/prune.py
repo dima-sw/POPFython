@@ -1,6 +1,7 @@
 import numpy as np
 import opfython.utils.constants as c
 import opfython.utils.logging as log
+import opfython.math.general as g
 
 logger = log.get_logger(__name__)
 
@@ -19,7 +20,12 @@ def prune(opf, X_train, Y_train, X_val, Y_val,M_loss, n_iterations=10):
     logger.info('Pruning classifier ...')
 
     # Faccio il primo learning e mi calcolo l'accuratezza massima
-    acc = opf.learn(X_train, Y_train, X_val, Y_val,n_iterations=n_iterations)
+    opf.learn(X_train, Y_train, X_val, Y_val,n_iterations=n_iterations)
+
+    """Penso Sia ridondante perche' gia' lo facciamo nel learning"""
+    preds = opf.pred(X_val)
+    # Calculating accuracy
+    acc = g.opf_accuracy(Y_val, preds)
 
     # Prendo il numero di nodi iniziali del grafo
     initial_nodes = opf.subgraph.n_nodes
@@ -58,7 +64,11 @@ def pruringRun(opf, acc, M_loss,n_iterations, X_train, Y_train, X_val, Y_val):
         if lunFin<lunIn:
             flag=True
             # Faccio il learning e prendo l'accuratezza
-            tmp = opf.learn(X_train, Y_train, X_val, Y_val,n_iterations=n_iterations)
+            opf.learn(X_train, Y_train, X_val, Y_val,n_iterations=n_iterations)
+            """Penso Sia ridondante perche' gia' lo facciamo nel learning"""
+            preds = opf.pred(X_val)
+            # Calculating accuracy
+            tmp = g.opf_accuracy(Y_val, preds)
             logger.info('Current accuracy: %s.', tmp)
 
 

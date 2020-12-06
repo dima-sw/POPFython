@@ -20,5 +20,5 @@ def creaGig(n):
 
     giganti.close()
 
-creaGig(1000)
+creaGig(3000)
 

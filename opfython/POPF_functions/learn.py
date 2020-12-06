@@ -123,7 +123,6 @@ def learn(opf, xt, yt, xv, yv,n_iterations=10):
         if delta < 0.0001 or t == n_iterations:
             # Replaces current class with the best OPF
             opf.subgraph = best_opf.subgraph
-            opf.pred(X_val)
             # Breaks the loop
             break
     return max_acc

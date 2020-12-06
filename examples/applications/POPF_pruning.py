@@ -26,7 +26,7 @@ if __name__ == '__main__':
                         pre_computed_distance=None)
 
     # Performs the pruning procedure
-    opf.prune(X_train, Y_train, X_val, Y_val,0.1,n_it=3)
+    opf.prune(X_train, Y_train, X_val, Y_val,0.1,n_it=2)
     t2=time.time()
 
     print("time of prunee: ",t2-t1)
