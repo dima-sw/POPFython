@@ -11,33 +11,33 @@ import time
 if __name__ == '__main__':
 
 
-    tagli = 10
-    # Loading a .txt file to a numpy array
-    txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
+        tagli = 10
+        # Loading a .txt file to a numpy array
+        txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
 
-    # Parsing a pre-loaded numpy array
-    X, Y = p.parse_loader(txt)
+        # Parsing a pre-loaded numpy array
+        X, Y = p.parse_loader(txt)
 
-    # Splitting data into training and testing sets
-    X_train, X_test, Y_train, Y_test = s.split(
-        X, Y, percentage=0.5, random_state=1)
+        # Splitting data into training and testing sets
+        X_train, X_test, Y_train, Y_test = s.split(
+            X, Y, percentage=0.5, random_state=1)
 
 
 
-    # Creates a SupervisedPOPF instance
-    opf = SSupervisedPOPF(processi=mp.cpu_count(),tagli=tagli
-                             ,distance='log_squared_euclidean',
-                            pre_computed_distance=None)
 
-    t1 = time.time()
+        # Creates a SupervisedPOPF instance
+        opf = SSupervisedPOPF(processi=mp.cpu_count(),tagli=tagli
+                                 ,distance='log_squared_euclidean',
+                                pre_computed_distance=None)
 
-    opf.fit(X_train, Y_train)
-    preds=opf.pred(X_test)
+        t1 = time.time()
+        opf.fit(X_train, Y_train)
+        L2,P2=opf.pred(X_test)
 
-    acc = g.opf_accuracy(Y_test, preds)
+        acc = g.opf_accuracy(Y_test, L2)
 
-    t2 = time.time()
-    tot = t2 - t1
+        t2 = time.time()
+        tot = t2 - t1
 
-    print("Tempo: ", tot)
-    print(f'Accuracy: {acc}')
+        print("Tempo: ", tot)
+        print(f'Accuracy: {acc}')

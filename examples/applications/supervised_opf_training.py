@@ -7,7 +7,7 @@ import time
 
 
 # Loading a .txt file to a numpy array
-txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\miniboo.txt')
+txt = l.load_txt(r'C:\Users\TheDimitri\Documents\GitHub\POPFython\data\nug.txt')
 
 # Parsing a pre-loaded numpy array
 X, Y = p.parse_loader(txt)

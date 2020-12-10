@@ -6,6 +6,8 @@ from multiprocessing import JoinableQueue, Queue, Array
 from opfython.POPF_functions.POPF_functions import creaProcFit,creaTagli,calcMin
 import time
 
+
+
 logger = log.get_logger(__name__)
 
 

@@ -17,11 +17,12 @@ def predConc(opf, work, X_val, result, conquerors):
         ran = work.get()
         # faccio il predict su un range di X_val
 
-        pred = predict(opf,X_val[ran[0]:ran[1]],coda=conquerors)
+        pred = predict(opf,X_val[ran[0]:ran[1]],conquerors)
 
         j = 0
         # mi salvo i pred nell'ordine giusto
         for i in range(ran[0], ran[1]):
+
             result[i] = pred[j]
             j += 1
 
@@ -66,9 +67,7 @@ def pred(opf, X_val,I_val=None):
     for i in range(opf._processi):
         p[i].terminate()
 
-    # Marchio i nodi Rilevanti nel grafo
-    while not conquerors.empty():
-        opf.subgraph.mark_nodes(conquerors.get())
+
 
     # Ending timer
     end = time.time()
@@ -79,12 +78,12 @@ def pred(opf, X_val,I_val=None):
     logger.info('Data has been predicted.')
     logger.info('Prediction time: %s seconds.', predict_time)
 
-    return result
+    return result,conquerors
 
 
 
 
-def predict(opf, X_val, coda=None, I_val=None):
+def predict(opf, X_val, coda, I_val=None):
     """Predicts new data using the pre-trained classifier.
     Args:
         X_val (np.array): Array of validation or test features.
@@ -103,13 +102,14 @@ def predict(opf, X_val, coda=None, I_val=None):
         # If not, raises an BuildError
         raise e.BuildError('Classifier has not been properly fitted')
 
+
     # Initializing the timer
     start = time.time()
 
     # Creating a prediction subgraph
     pred_subgraph = Subgraph(X_val, I=I_val)
 
-    startPredict(opf,pred_subgraph,coda=coda)
+    startPredict(opf,pred_subgraph,coda)
 
     # Creating the list of predictions
     preds = [pred.predicted_label for pred in pred_subgraph.nodes]
@@ -127,7 +127,7 @@ def predict(opf, X_val, coda=None, I_val=None):
     return preds
 
 
-def startPredict(opf,pred_subgraph,coda=None):
+def startPredict(opf,pred_subgraph,coda):
     # For every possible node
     for i in range(pred_subgraph.n_nodes):
         # Initializing the conqueror node
@@ -197,8 +197,4 @@ def startPredict(opf,pred_subgraph,coda=None):
 
         # Checks if any node has been conquered
         if conqueror > -1:
-            # Marks the conqueror node and its path
-            if coda is not None:
-                coda.put(conqueror)
-            else:
-                opf.subgraph.mark_nodes(conqueror)
+            coda.put(conqueror)

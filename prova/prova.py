@@ -22,26 +22,14 @@ p.show()
 
 print(asarray(p).min(), asarray(p).max())"""
 
-def f(s):
-    #s=[3,4,5]
+import numpy
 
-    t=copy.deepcopy(s)
+a = numpy.array([1,2,3])
+newArray= numpy.array([[3,5,2],[6,5,2]])
 
-    t[0][0]=22
+a = numpy.insert(a,len(a), a[1])
 
-
-    #s[:]=t[:]
-    print(s[:]==t[:])
-    return t
-
-
-
-s=[[3,4,5],[3,4,5],[3,2,1]]
-j=[[9,3,4],[6,7,8]]
-t=f(s)
-s.append(j[1])
-print(s)
-print(s[:]==t[:])
+print(a)
 
 """def proc(queue,i):
 

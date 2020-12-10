@@ -17,7 +17,6 @@ def learn(opf, xt, yt, xv, yv,n_iterations=10):
         xv (np.array): Array of validation features.
         yv (np.array): Array of validation labels.
         n_iterations (int): Number of iterations.
-
     """
     # Devo salvare i numpyArray del grafo con l'accuratezza maggiore
     X_val = copy.deepcopy(xv)
@@ -43,10 +42,8 @@ def learn(opf, xt, yt, xv, yv,n_iterations=10):
         # Fits training data into the classifier
         opf.fit(X_train, Y_train)
 
-        # Predicts new data
-
         # preds = opf.pred(X_val,tagli)
-        preds = opf.pred(X_val)
+        preds,l = opf.pred(X_val)
         # Calculating accuracy
         acc = g.opf_accuracy(Y_val, preds)
 
