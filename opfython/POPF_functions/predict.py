@@ -33,8 +33,8 @@ def pred(opf, X_val,I_val=None):
     logger.info('Predicting data ...')
 
 
-    if(len(X_val)<500):
-        return predict(opf,X_val,I_val=I_val)
+    """if(len(X_val)<500):
+        return predict(opf,X_val,I_val=I_val)"""
 
     # Initializing the timer
     start = time.time()

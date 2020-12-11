@@ -1,125 +1,132 @@
-
 import numpy as np
 import copy
-import opfython.math.random as r
 import opfython.utils.constants as c
 import opfython.utils.logging as log
-import opfython.math.general as g
+
 
 logger = log.get_logger(__name__)
 
 
-def learn(opf, xt, yt, xv, yv,n_iterations=10):
-    """Learns the best classifier over a validation set.
-    Args:
-        xt (np.array): Array of training features.
-        yt (np.array): Array of training labels.
-        xv (np.array): Array of validation features.
-        yv (np.array): Array of validation labels.
-        n_iterations (int): Number of iterations.
+def learn(opf, xt, yt, xv, yv,n_iterations=10,variazione=0.001):
     """
-    # Devo salvare i numpyArray del grafo con l'accuratezza maggiore
+    Args:
+        opf: il nostro classificatore
+        xt: numpyArray dei campioni per il training
+        yt: numpyArray delle label per il training
+        xv: numpyArray dei campioni per la convalida
+        yv: numpyArray delle label per la convalida
+        n_iterations: quante iterazioni del learning vogliamo fare
+        variazione: se nell'iterazione attuale abbiamo un cambiamento dell'accuratezza (acc attuale- acc precedente) più piccolo di variazione
+                                                                                        possiamo finere il learning
+    """
+
+    # Devo salvare i set di training e i set di classification del miglior classificatore
     X_val = copy.deepcopy(xv)
     X_train = copy.deepcopy(xt)
     Y_val = copy.deepcopy(yv)
     Y_train = copy.deepcopy(yt)
 
-    logger.info('Learning the best classifier ...')
+    max_acc=-1
+    prev_acc=0
 
-    # Defines the maximum accuracy
-    max_acc = 0
 
-    # Defines the previous accuracy
-    previous_acc = 0
 
-    # Defines the iterations counter
-    t = 0
 
-    # An always true loop
-    while True:
-        logger.info('Running iteration %d/%d ...', t + 1, n_iterations)
+    for it in range(0,n_iterations):
 
-        # Fits training data into the classifier
+        # Calcolo il numero di label diverse es. [1,2,3,2,2,2] -> 3
+        num_class = np.max(Y_val)
+
+        #Calcolo il numero totale di ogni label es. [1,3,2,2,2,2] -> [1,3,1]
+        _, count_label = np.unique(Y_val, return_counts=True)
+
+        #Lista dei campioni misclassificati
+        LM=[]
+
+        #Training
         opf.fit(X_train, Y_train)
 
-        # preds = opf.pred(X_val,tagli)
-        preds,l = opf.pred(X_val)
-        # Calculating accuracy
-        acc = g.opf_accuracy(Y_val, preds)
+        #Numpy Array dei Falsi positivi (FP) e falsi negativi (FN) a ogni iterazione li azzero
+        FP=np.zeros(num_class)
+        FN=np.zeros(num_class)
 
-        # Checks if current accuracy is better than the best one
-        if acc > max_acc:
-            # If yes, replace the maximum accuracy
-            max_acc = acc
+        #Classificazione
+        L2,P2=opf.pred(X_val)
 
-            # Makes a copy of the best OPF classifier
-            best_opf = copy.deepcopy(opf)
+        #Aggiorno FP ed FN e calcolo l'accuratezza
+        acc=cur_acc(L2,Y_val,FP,FN,LM,count_label,num_class)
 
-            # Salvo i numpyArray del classificatore con l'accuratezza maggiore
+        #Se l'accuratezza e' migliore di quella massima, mi salvo il classificatore
+        if acc>max_acc:
+            max_acc=acc
+            best_istance=copy.deepcopy(opf.subgraph)
+
+            #Aggiorno anche le liste cosi da avere i set giusti (Indispensabile per il pruning)
             xt[:] = X_train[:]
             xv[:] = X_val[:]
             yt[:] = Y_train[:]
             yv[:] = Y_val[:]
-            # And saves the iteration number
-            best_t = t
 
-        # Gathers which samples were missclassified
-        errors = np.argwhere(Y_val != preds)
+        #Rimpiazzo i campioni misclassificati di X_val e Y_val con campioni non prototipi di X_train e Y_train (randomicamente)
+        swap_err(X_train,Y_train,X_val,Y_val,opf.subgraph,LM)
 
-        # Defining the initial number of non-prototypes as 0
-        non_prototypes = 0
+        var=abs(acc-prev_acc)
+        prev_acc=acc
 
-        # For every possible subgraph's node
-        for n in opf.subgraph.nodes:
-            # If the node is not a prototype
-            if n.status != c.PROTOTYPE:
-                # Increments the number of non-prototypes
-                non_prototypes += 1
+        logger.info('Current accuracy: %s | Variation: %s | Max_accuracy: %s', acc, var, max_acc)
 
-        # For every possible error
-        for err in errors:
-            # Counter will receive the number of non-prototypes
-            ctr = non_prototypes
-
-            # While the counter is bigger than zero
-            while ctr > 0:
-                # Generates a random index
-                j = int(r.generate_uniform_random_number(0, len(X_train)))
-
-                # If the node on that particular index is not a prototype
-                if opf.subgraph.nodes[j].status != c.PROTOTYPE:
-                    # Swap the input nodes
-                    X_train[j, :], X_val[err, :] = X_val[err, :], X_train[j, :]
-
-                    # Swap the target nodes
-                    Y_train[j], Y_val[err] = Y_val[err], Y_train[j]
-
-                    # Decrements the number of non-prototypes
-                    non_prototypes -= 1
-
-                    # Resets the counter
-                    ctr = 0
-
-                # If the node on that particular index is a prototype
-                else:
-                    # Decrements the counter
-                    ctr -= 1
-
-        # Calculating difference between current accuracy and previous one
-        delta = np.fabs(acc - previous_acc)
-
-        # Replacing the previous accuracy as current accuracy
-        previous_acc = acc
-
-        # Incrementing the counter
-        t += 1
-
-        logger.info('Accuracy: %s | Delta: %s | Maximum Accuracy: %s', acc, delta, max_acc)
-
-        # If the difference is smaller than 10e-4 or iterations are finished
-        if delta < 0.0001 or t == n_iterations:
-            # Replaces current class with the best OPF
-            opf.subgraph = best_opf.subgraph
-            # Breaks the loop
+        #se la variazione e' minima nell'accuratezza possiamo terminare il learning
+        if(var<=variazione):
             break
+
+    #Mi prendo il classificatore migliore
+    opf.subgraph=best_istance
     return max_acc
+
+
+def cur_acc(L2,Y_val,FP,FN,LM,count_label,num_class):
+
+
+    for t in range(0, len(Y_val)):
+        # se t e' misclassificato incremento i falsi positivi e falsi negativi, aggiungo t ad LM
+        if L2[t] != Y_val[t]:
+            FP[L2[t] - 1] += 1
+            FN[Y_val[t] - 1] += 1
+
+            LM.append(t)
+
+    #Calcolo l'accuratezza secondo l'articolo 'Supervised Pattern Classification based on Optimum-Path Forest'
+    Err_FN = FN[:] / count_label
+    Err_FP = FP[:] / (np.sum(count_label) - count_label)
+
+    Error = np.sum(Err_FN + Err_FP)
+
+    acc = 1 - (Error) / (2 * num_class)
+
+    return acc
+
+
+def swap_err(X_train,Y_train,X_val,Y_val,subgraph,LM,):
+    #Mi prendo quanti non prototipi ci sono nel classificatore
+    non_prot = len(X_train) - subgraph.n_prot
+
+    for t in LM:
+
+        #Non prototipi attuali serve perche' ci potrebbero essere più t in LM che nodi non prototipi
+        curr_non_prot = non_prot
+        while curr_non_prot > 0:
+
+            #Genero un numero casuale UNIFORME
+            ran = (int)(np.random.uniform(0, len(X_train), 1))
+
+            #Se non è un prototipo allora faccio lo swap
+            if (subgraph.nodes[ran].status != c.PROTOTYPE):
+                X_train[ran, :], X_val[t, :] = X_val[t, :], X_train[ran, :]
+                Y_train[ran], Y_val[t] = Y_val[t], Y_train[ran]
+                non_prot -= 1
+
+                break
+            else:
+                curr_non_prot -= 1
+
+

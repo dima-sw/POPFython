@@ -47,6 +47,8 @@ def _find_prototypes(opf):
     # creo i processi
     creaProcFit(protParal, processi, opf._processi,opf, P, C, U, work, result)
 
+    opf.subgraph.n_prot=len(prototypes)
+
     #Partiziono
     parti = []
     creaTagli(opf._tagli, parti, opf.subgraph.n_nodes)

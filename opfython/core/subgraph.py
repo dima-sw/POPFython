@@ -44,6 +44,8 @@ class Subgraph:
         # Whether the subgraph is trained or not
         self.trained = False
 
+        self.n_prot=0
+
         # Checks if data should be loaded from a file
         if from_file:
             # Loads the data
