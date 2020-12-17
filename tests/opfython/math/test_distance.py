@@ -1,9 +1,9 @@
 import numpy as np
-
+import time
 from opfython.math import distance
 
 
-def test_additive_symmetric_distance():
+"""def test_additive_symmetric_distance():
     x = np.asarray([5.1, 3.5, 1.4, 0.3])
     y = np.asarray([5.4, 3.4, 1.7, 0.2])
 
@@ -361,18 +361,22 @@ def test_squared_chord_distance():
     dist = distance.squared_chord_distance(x, y)
 
     assert dist == 0.029663592349384992
-
+"""
 
 def test_squared_euclidean_distance():
     x = np.asarray([5.1, 3.5, 1.4, 0.3])
     y = np.asarray([5.4, 3.4, 1.7, 0.2])
+    t1=time.time()
+    for i in range(100000):
+        dist = distance.squared_euclidean_distance(x, y)
+    t2=time.time()
 
-    dist = distance.squared_euclidean_distance(x, y)
+    print(t2-t1)
 
-    assert dist == 0.20000000000000046
+    #assert dist == 0.20000000000000046
 
 
-def test_statistic_distance():
+"""def test_statistic_distance():
     x = np.asarray([5.1, 3.5, 1.4, 0.3])
     y = np.asarray([5.4, 3.4, 1.7, 0.2])
 
@@ -423,4 +427,8 @@ def test_vicis_wave_hedges_distance():
 
     dist = distance.vicis_wave_hedges_distance(x, y)
 
-    assert dist == 0.8025210084033614
+    assert dist == 0.8025210084033614"""
+
+
+
+test_squared_euclidean_distance()
