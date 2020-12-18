@@ -3,7 +3,7 @@ from threading import Thread
 
 def creaProcFit(target, processi,nproc, *args):
     for i in range(nproc):
-        processi.append(Process(target=target, args=(args)))
+        processi.append(Process(target=target, args=(args,i)))
         processi[i].daemon = True
         processi[i].start()
 
