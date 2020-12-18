@@ -7,12 +7,6 @@ def creaProcFit(target, processi,nproc, *args):
         processi[i].daemon = True
         processi[i].start()
 
-def creaThreadFit(target, processi,nproc, *args):
-    for i in range(nproc):
-        processi.append(Thread(target=target, args=(args)))
-        processi[i].daemon = True
-        processi[i].start()
-
 
 
 def creaTagli(tagli, parti, n):
