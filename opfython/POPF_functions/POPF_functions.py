@@ -4,11 +4,17 @@ from threading import Thread
 def creaProcFit(target, processi,nproc, *args):
     
     for i in range(nproc):
+        processi.append(Process(target=target, args=(args)))
+        processi[i].daemon = True
+        processi[i].start()
+       
+ def creaProcFitt(target, processi,nproc, *args):
+    
+    for i in range(nproc):
         newArgs=args+[i]
         processi.append(Process(target=target, args=(newArgs)))
         processi[i].daemon = True
         processi[i].start()
-
 
 
 def creaTagli(tagli, parti, n):
