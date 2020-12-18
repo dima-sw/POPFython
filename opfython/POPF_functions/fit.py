@@ -55,7 +55,7 @@ def fit(opf, X_train, Y_train,I_train=None):
     
     
     # creo e faccio partire i processi
-    creaProcFit(train, processi, opf._processi, opf, P, C, L, U, work, result)
+    creaProcFitt(train, processi, opf._processi, opf, P, C, L, U, work, result)
 
     """parti= [[0,n_nodi/tagli],...,[(tagli-1)*(n_nodi/tagli),n_nodi]]"""  # partiziono in n parti uguali con n=tagli
     parti = []
