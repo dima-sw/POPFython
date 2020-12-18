@@ -2,8 +2,10 @@ from multiprocessing import Process, Queue, JoinableQueue
 from threading import Thread
 
 def creaProcFit(target, processi,nproc, *args):
+    
     for i in range(nproc):
-        processi.append(Process(target=target, args=(args,i)))
+        newArgs=args+[i]
+        processi.append(Process(target=target, args=(newArgs)))
         processi[i].daemon = True
         processi[i].start()
 
