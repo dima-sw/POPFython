@@ -51,7 +51,9 @@ def fit(opf, X_train, Y_train,I_train=None):
 
     work = JoinableQueue()
     result = Queue()
-
+    
+    
+    
     # creo e faccio partire i processi
     creaProcFit(train, processi, opf._processi, opf, P, C, L, U, work, result)
 
@@ -166,8 +168,8 @@ def fitCompute(opf,s,U,C,work,result,parti):
             percent += 1"""
 
 #Parte concorrente del training
-def train(opf, P,C,L,U, work, result):
-
+def train(opf, P,C,L,U, work, result,i):
+        
 
         while True:
             #vedo se c'è un range sul quale lavorare
@@ -175,7 +177,7 @@ def train(opf, P,C,L,U, work, result):
 
             # s1 dovrà essere il nodo non usato con il costo più piccolo,
             # workInRange è proprio il lavoro che svolge il processo nel range r1,r2 (for interno)
-            s1 = workInRange(opf,s,r1,r2,C,L,P,U)
+            s1 = workInRange(opf,s,r1,r2,C,L,P,U,i)
 
 
             # s1=None significa che ogni nodo di questo range è già stato used e restituiamo -1
@@ -188,8 +190,9 @@ def train(opf, P,C,L,U, work, result):
             work.task_done()
 
 
-def workInRange(opf,s,r1,r2,C,L,P,U):
-        s1=None
+def workInRange(opf,s,r1,r2,C,L,P,U,i):
+        s1=None 
+        print("Numero processo: ",i)
         # lavoro solo nel range preso dalla work.get() r1,r2
         for t in range(r1, r2):
 
