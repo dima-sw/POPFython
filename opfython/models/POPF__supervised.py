@@ -14,6 +14,11 @@ from opfython.POPF_functions.Seq.fitting import fit as sfit
 from opfython.POPF_functions.Seq.find_prototypes import _find_prototypes as sfind_prto
 from opfython.POPF_functions.Seq.predict import predict as spred
 
+from opfython.POPF_functions.portNumba import _find_prototypes as numbaProt
+from opfython.POPF_functions.fitNumba import fit as numbaFit
+from opfython.POPF_functions.predictNumba import predict as numbaPred
+import time
+
 
 import math
 logger = log.get_logger(__name__)
@@ -56,14 +61,19 @@ class SSupervisedPOPF(OPF):
         #if self.subgraph.n_nodes<=500:
             #sfind_prto(self)
         #else:
-            cfind_prot(self)
+        #cfind_prot(self)
+        t1=time.time()
+        numbaProt(self,self.xtrain)
+        print("findProt: ",time.time()-t1)
 
     #Training
     def fit(self,X_train, Y_train):
         #if len(X_train)<=500:
             #sfit(self,X_train,Y_train)
         #else:
-            cfit(self,X_train,Y_train)
+        self.xtrain=X_train
+        #cfit(self,X_train,Y_train)
+        numbaFit(self,X_train,Y_train)
 
     #Pruning
     def prune(self, X_train, Y_train, X_val, Y_val, M_loss, n_it=10):
@@ -77,4 +87,6 @@ class SSupervisedPOPF(OPF):
     def pred(self, X_val):
         #if(len(X_val)<=500):
            #return spred(self,X_val)
-        return cPred(self, X_val)
+        #return cPred(self, X_val)
+
+        return numbaPred(self,X_val)
