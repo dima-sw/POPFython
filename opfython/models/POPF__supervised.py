@@ -14,9 +14,9 @@ from opfython.POPF_functions.Seq.fitting import fit as sfit
 from opfython.POPF_functions.Seq.find_prototypes import _find_prototypes as sfind_prto
 from opfython.POPF_functions.Seq.predict import predict as spred
 
-from opfython.POPF_functions.portNumba import _find_prototypes as numbaProt
-from opfython.POPF_functions.fitNumba import fit as numbaFit
-from opfython.POPF_functions.predictNumba import predict as numbaPred
+from opfython.POPF_functions.numba.portNumba import _find_prototypes as numbaProt
+from opfython.POPF_functions.numba.fitNumba import fit as numbaFit
+from opfython.POPF_functions.numba.predictNumba import predict as numbaPred
 import time
 
 
@@ -59,7 +59,7 @@ class SSupervisedPOPF(OPF):
     #Find prototypes using MST approach
     def _find_prototypes(self):
         #if self.subgraph.n_nodes<=500:
-            #sfind_prto(self)
+        #sfind_prto(self)
         #else:
         #cfind_prot(self)
         t1=time.time()
@@ -69,7 +69,7 @@ class SSupervisedPOPF(OPF):
     #Training
     def fit(self,X_train, Y_train):
         #if len(X_train)<=500:
-            #sfit(self,X_train,Y_train)
+        #sfit(self,X_train,Y_train)
         #else:
         self.xtrain=X_train
         #cfit(self,X_train,Y_train)
@@ -86,7 +86,10 @@ class SSupervisedPOPF(OPF):
     #Predict
     def pred(self, X_val):
         #if(len(X_val)<=500):
-           #return spred(self,X_val)
+        #return spred(self,X_val)
         #return cPred(self, X_val)
 
         return numbaPred(self,X_val)
+
+    def predM(self,X_val):
+        return cPred(self, X_val)
