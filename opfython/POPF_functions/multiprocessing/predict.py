@@ -5,7 +5,7 @@ from opfython.POPF_functions.POPF_functions import creaTagli,creaProcFit
 from opfython.core import  Subgraph
 import numpy as np
 import time
-
+import os
 
 logger = log.get_logger(__name__)
 
@@ -15,6 +15,7 @@ def predConc(opf, work, X_val, result, conquerors):
         # predno il range su cui fare il predict
 
         ran = work.get()
+        #print("1",os.getpid(), ran)
         # faccio il predict su un range di X_val
 
         pred = predict(opf,X_val[ran[0]:ran[1]],conquerors)
@@ -27,6 +28,7 @@ def predConc(opf, work, X_val, result, conquerors):
             j += 1
 
         work.task_done()
+        #print(os.getpid(),ran, pred)
 
 
 def pred(opf, X_val,I_val=None):
@@ -133,6 +135,7 @@ def startPredict(opf,pred_subgraph,coda):
         # Initializing the conqueror node
         conqueror = -1
 
+
         # Initializes the `j` counter
         j = 0
 
@@ -147,7 +150,7 @@ def startPredict(opf,pred_subgraph,coda):
         # If the distance is supposed to be calculated
         else:
             # Calls the corresponding distance function
-            weight = opf.distance_fn(
+            weight = calcWeight(
                 opf.subgraph.nodes[k].features, pred_subgraph.nodes[i].features)
 
         # The minimum cost will be the maximum between the `k` node cost and its weight (arc)
@@ -169,7 +172,7 @@ def startPredict(opf,pred_subgraph,coda):
             # If the distance is supposed to be calculated
             else:
                 # Calls the corresponding distance function
-                weight = opf.distance_fn(
+                weight = calcWeight(
                     opf.subgraph.nodes[l].features, pred_subgraph.nodes[i].features)
 
             # The temporary minimum cost will be the maximum between the `l` node cost and its weight (arc)
@@ -198,3 +201,11 @@ def startPredict(opf,pred_subgraph,coda):
         # Checks if any node has been conquered
         if conqueror > -1:
             coda.put(conqueror)
+
+def calcWeight(x,y):
+    dist = 0
+
+    for i in range(len(x)):
+        dist += (x[i] - y[i]) * (x[i] - y[i])
+
+    return dist

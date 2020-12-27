@@ -121,7 +121,6 @@ def fitCompute(opf, s, U, C, work, result, parti):
     """percent = 0
     percOld = 1
     flagTime = True """
-
     # quando avrò computato tutti i nodi s sarà = -1
     while s != -1:
         """tempo stimato e %"""
@@ -148,8 +147,9 @@ def fitCompute(opf, s, U, C, work, result, parti):
         # prendo il più piccolo s
         s = calcMin(result)
 
-        # Tengo traccia a che punto sta, per file grossi è comodo
-        """percnew = (percent / opf.subgraph.n_nodes) * 100
+
+    # Tengo traccia a che punto sta, per file grossi è comodo
+    """percnew = (percent / opf.subgraph.n_nodes) * 100
         #Sempre per tenere traccia
         if (percnew > percOld):
             endPerc = time.time()
@@ -163,6 +163,7 @@ def fitCompute(opf, s, U, C, work, result, parti):
 
 # Parte concorrente del training
 def train(opf, P, C, L, U, work, result):
+
     while True:
 
         # vedo se c'è un range sul quale lavorare
@@ -180,6 +181,7 @@ def train(opf, P, C, L, U, work, result):
             result.put((s1, C[s1]))
         # finisco su questo range
         work.task_done()
+
 
 
 def workInRange(opf, s, r1, r2, C, L, P, U):
@@ -214,3 +216,4 @@ def workInRange(opf, s, r1, r2, C, L, P, U):
                 if U[t] == 0:
                     s1 = t
     return s1
+

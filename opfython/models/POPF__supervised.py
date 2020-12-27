@@ -5,9 +5,9 @@ import opfython.utils.logging as log
 from opfython.core import OPF
 
 
-from opfython.POPF_functions.predict import pred as cPred
-from opfython.POPF_functions.find_prot import _find_prototypes as cfind_prot
-from opfython.POPF_functions.fit import fit as cfit
+from opfython.POPF_functions.multiprocessing.predict import pred as cPred
+from opfython.POPF_functions.multiprocessing.find_prot import _find_prototypes as cfind_prot
+from opfython.POPF_functions.multiprocessing.fit import fit as cfit
 from opfython.POPF_functions.prune import prune as cprune
 from opfython.POPF_functions.learn import learn as clearn
 from opfython.POPF_functions.Seq.fitting import fit as sfit
