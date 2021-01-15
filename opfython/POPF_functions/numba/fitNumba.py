@@ -128,7 +128,7 @@ def fitCompute(opf,s,P,L,U,C,res,slices,xtrain):
 
 
 
-@njit(fastmath=True,nogil=True,parallel=True)
+@njit(fastmath=True,nogil=True,parallel=True,cache=True)
 def worker(P,C,U,L,s,xtrain,slice,res,n_threads):
 
     #Suddivido il lavoro in N threads ed a ciascuno do una slice sulla quale lavorare
@@ -137,7 +137,7 @@ def worker(P,C,U,L,s,xtrain,slice,res,n_threads):
 
 
 
-@njit(fastmath=True,nogil=True)
+@njit(fastmath=True,nogil=True,cache=True)
 def work(P,C,U,L,s,xtrain,res,r1,r2,i):
     s1 = -1
     #Lavoro solo su una slice da r1 ad r2
@@ -163,7 +163,7 @@ def work(P,C,U,L,s,xtrain,res,r1,r2,i):
     res[i] = s1
 
 #Calcolo della distanza euclidiana
-@njit(fastmath=True,nogil=True)
+@njit(fastmath=True,nogil=True,cache=True)
 def calcWeight(x,y):
     dist = 0
     for i in range(len(x)):

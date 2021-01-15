@@ -24,14 +24,14 @@ def predict(opf,X_val,I_val=None):
 
     return L2,P2
 
-@njit(fastmath=True,nogil=True,parallel=True)
+@njit(fastmath=True,nogil=True,parallel=True,cache=True)
 def pp(xt,xv,pl,pc,P2,L2,ord_n,slice,t):
     for i in prange(t):
         worker(xt,xv,pl,pc,P2,L2,ord_n,slice[i][0],slice[i][1])
 
 
 
-@njit(fastmath=True,nogil=True)
+@njit(fastmath=True,nogil=True,cache=True)
 def worker(xt,xv,pl,pc,P2,L2,ord_n,r1,r2):
 
     for i in range(r1,r2):
@@ -61,7 +61,7 @@ def worker(xt,xv,pl,pc,P2,L2,ord_n,r1,r2):
 
 
 
-@njit(fastmath=True,nogil=True)
+@njit(fastmath=True,nogil=True,cache=True)
 def calcWeight(x,y):
     dist = 0
 

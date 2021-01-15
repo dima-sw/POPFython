@@ -82,7 +82,7 @@ def calcMin(C,res):
 
 
 
-@njit(fastmath=True,nogil=True,parallel=True)
+@njit(fastmath=True,nogil=True,parallel=True,cache=True)
 def worker(P,C,U,p,xtrain,slice,res,n_threads):
     #Suddivido il lavoro in N threads ed a ciascuno do una slice sulla quale lavorare
     for i in prange(n_threads):
@@ -90,7 +90,7 @@ def worker(P,C,U,p,xtrain,slice,res,n_threads):
 
 
 
-@njit(fastmath=True,nogil=True)
+@njit(fastmath=True,nogil=True,cache=True)
 def work(P,C,U,p,xtrain,res,r1,r2,i):
     s1 = -1
     for q in range(r1,r2):
@@ -110,7 +110,7 @@ def work(P,C,U,p,xtrain,res,r1,r2,i):
 
 
 #Calcolo la distanza euclidiana tra due nodi
-@njit(fastmath=True,nogil=True)
+@njit(fastmath=True,nogil=True,cache=True)
 def calcWeight(x,y):
     dist = 0
 
