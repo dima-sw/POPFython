@@ -1,4 +1,8 @@
 """General-based mathematical methods.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
+
 """
 
 import numpy as np

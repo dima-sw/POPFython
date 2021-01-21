@@ -1,4 +1,7 @@
 """Node structure that belongs to the Optimum-Path Forest.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
 """
 
 import numpy as np
@@ -97,7 +100,7 @@ class Node:
         if not isinstance(label, int):
             raise e.TypeError('`label` should be an integer')
         if label < 1:
-
+            print(label)
             raise e.ValueError('`label` should be >= 1')
 
         self._label = label

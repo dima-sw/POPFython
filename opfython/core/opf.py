@@ -1,4 +1,8 @@
 """Optimum-Path Forest standard definitions.
+
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
 """
 
 import pickle

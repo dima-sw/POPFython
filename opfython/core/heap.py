@@ -1,4 +1,8 @@
 """Standard Heap implementation.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
+
 """
 
 import opfython.utils.constants as c

@@ -1,4 +1,7 @@
 """Data parsing utilities.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
 """
 
 import numpy as np
@@ -40,10 +43,10 @@ def parse_loader(data):
                 'Parsed data should have at least two distinct labels')
 
         # If there are unsequential labels
-        #if len(counts) != np.max(Y):
+        if len(counts) != np.max(Y):
             # Raises a ValueError
-            #raise e.ValueError(
-                #'Parsed data should have sequential labels, e.g., 1, 2, ..., n')
+            raise e.ValueError(
+                'Parsed data should have sequential labels, e.g., 1, 2, ..., n')
 
         logger.info('Data parsed.')
 

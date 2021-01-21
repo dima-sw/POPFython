@@ -1,3 +1,5 @@
+import time
+
 import opfython.utils.constants as c
 from opfython.POPF_functions.POPF_functions import creaProcFit,creaTagliNP,calcMin,creaThreadFit
 import numpy as np
@@ -25,6 +27,8 @@ def updateProt(opf, prototypes, p, pred):
 
 
 def _find_prototypes(opf,xtrain):
+
+    start=time.time()
 
     #Setto il numero dei thread
     set_num_threads(opf._processi)
@@ -70,6 +74,8 @@ def _find_prototypes(opf,xtrain):
     #Aggiorno il grafo
     for i in range(opf.subgraph.n_nodes):
         opf.subgraph.nodes[i].pred = (int)(P[i])
+
+    print("Protypes found in: ", time.time()-start)
 
 
 #Questa funzione calcola il minimo s1 in termine di costo

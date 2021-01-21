@@ -1,4 +1,8 @@
 """Subgraph structure that belongs to the Optimum-Path Forest.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
+
 """
 
 import numpy as np

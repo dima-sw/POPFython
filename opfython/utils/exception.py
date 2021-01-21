@@ -1,4 +1,6 @@
 """Exceptions.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
 """
 
 import opfython.utils.logging as l

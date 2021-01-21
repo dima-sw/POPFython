@@ -22,6 +22,8 @@ def predict(opf,X_val,I_val=None):
 
     pp(xt,xv,p_labels,p_cost,P2,L2,ordered_nodes,tt,opf._processi)
 
+    print("Classification in: ", time.time() - t1)
+
     return L2,P2
 
 @njit(fastmath=True,nogil=True,parallel=True,cache=True)

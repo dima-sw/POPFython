@@ -1,4 +1,9 @@
+"""
+Parallel classification
 
+@Author: Dmytro Lysyhanych
+
+"""
 cimport cython
 
 from  opfython.Sequential_supervised.distancepx import distancescy as distance

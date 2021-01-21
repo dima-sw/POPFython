@@ -1,4 +1,6 @@
 """Decorators.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
 """
 
 from functools import wraps

@@ -2,12 +2,12 @@ import numpy as np
 import copy
 import opfython.utils.constants as c
 import opfython.utils.logging as log
-
+import opfython.math.general as g
 
 logger = log.get_logger(__name__)
 
 
-def learn(opf, xt, yt, xv, yv,n_iterations=10,variazione=0.001):
+def learn(opf, xt, yt, xv, yv,fit,pred,n_iterations=10,delta=0.0001):
     """
     Args:
         opf: il nostro classificatore
@@ -44,14 +44,14 @@ def learn(opf, xt, yt, xv, yv,n_iterations=10,variazione=0.001):
         LM=[]
 
         #Training
-        opf.fit(X_train, Y_train)
+        fit(X_train, Y_train)
 
         #Numpy Array dei Falsi positivi (FP) e falsi negativi (FN) a ogni iterazione li azzero
         FP=np.zeros(num_class)
         FN=np.zeros(num_class)
 
         #Classificazione
-        L2,P2=opf.pred(X_val)
+        L2,P2=pred(X_val)
 
         #Aggiorno FP ed FN e calcolo l'accuratezza
         acc=cur_acc(L2,Y_val,FP,FN,LM,count_label,num_class)
@@ -76,11 +76,12 @@ def learn(opf, xt, yt, xv, yv,n_iterations=10,variazione=0.001):
         logger.info('Current accuracy: %s | Variation: %s | Max_accuracy: %s', acc, var, max_acc)
 
         #se la variazione e' minima nell'accuratezza possiamo terminare il learning
-        if(var<=variazione):
+        if(var<=delta):
             break
 
     #Mi prendo il classificatore migliore
     opf.subgraph=best_istance
+
     return max_acc
 
 
@@ -89,6 +90,7 @@ def cur_acc(L2,Y_val,FP,FN,LM,count_label,num_class):
 
     for t in range(0, len(Y_val)):
         # se t e' misclassificato incremento i falsi positivi e falsi negativi, aggiungo t ad LM
+
         if L2[t] != Y_val[t]:
             FP[L2[t] - 1] += 1
             FN[Y_val[t] - 1] += 1

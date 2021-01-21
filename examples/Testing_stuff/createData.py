@@ -1,5 +1,11 @@
 import random
+"""
 
+Create your own random DATASET!! Number of features:3, number of sample: your choise
+
+@Author: Dmytro Lysyhanych
+
+"""
 def creaGig(n):
     giganti=open("../../data/nug.txt", "w")
     #altezza, età, peso,
@@ -20,5 +26,5 @@ def creaGig(n):
 
     giganti.close()
 
-creaGig(3000)
+creaGig(100000)
 

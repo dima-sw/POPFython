@@ -1,4 +1,7 @@
 """Data loading utilities.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
 """
 
 import json as j

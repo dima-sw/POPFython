@@ -1,4 +1,7 @@
 """Logging-based methods and helpers.
+
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
 """
 
 import logging

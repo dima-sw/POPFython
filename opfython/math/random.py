@@ -1,4 +1,8 @@
 """Random numbers generators.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
+
 """
 
 import numpy as np

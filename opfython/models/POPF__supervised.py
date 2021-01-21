@@ -1,4 +1,8 @@
-"""Supervised Parallel Optimum-Path Forest.
+"""Supervised Optimum-Path Forest.
+
+@Author: Dmytro Lysyhanych
+
+
 """
 
 import opfython.utils.logging as log
@@ -17,12 +21,9 @@ from opfython.POPF_functions.Seq.predict import predict as spred
 from opfython.POPF_functions.numba.portNumba import _find_prototypes as numbaProt
 from opfython.POPF_functions.numba.fitNumba import fit as numbaFit
 from opfython.POPF_functions.numba.predictNumba import predict as numbaPred
-import time
 
 
-import math
 logger = log.get_logger(__name__)
-
 
 class SSupervisedPOPF(OPF):
     """
@@ -56,40 +57,62 @@ class SSupervisedPOPF(OPF):
                 self.subgraph.nodes[t].features, self.subgraph.nodes[s].features)
         return weight
 
-    #Find prototypes using MST approach
-    def _find_prototypes(self):
-        #if self.subgraph.n_nodes<=500:
-        #sfind_prto(self)
-        #else:
-        #cfind_prot(self)
-        t1=time.time()
-        numbaProt(self,self.xtrain)
-        print("findProt: ",time.time()-t1)
 
-    #Training
-    def fit(self,X_train, Y_train):
-        #if len(X_train)<=500:
-        #sfit(self,X_train,Y_train)
-        #else:
+    ############################
+    #Sequential Python
+
+    def seq_Find_Prototypes(self):
+        sfind_prto(self)
+
+
+    def seq_Fit(self,X_train, Y_train):
+        sfit(self, X_train, Y_train)
+
+
+    def seq_Predict(self,X_val):
+        return spred(self, X_val)
+
+
+    ############################
+
+    ############################
+    #Multiprocessing
+
+    def mult_Find_Prototypes(self):
+        cfind_prot(self)
+
+    def mult_Fit(self,X_train,Y_train):
+        cfit(self,X_train,Y_train)
+
+    def mult_Predict(self,X_val):
+        return cPred(self,X_val)
+
+    ############################
+
+    ############################
+    #Numba
+
+    def numba_Find_Prototypes(self,X_train):
+        numbaProt(self, X_train)
+
+
+    def numba_Fit(self,X_train,Y_train):
         self.xtrain=X_train
-        #cfit(self,X_train,Y_train)
         numbaFit(self,X_train,Y_train)
 
+    def numba_Predict(self,X_val):
+        return numbaPred(self, X_val)
+    ############################
+
+
+
+
     #Pruning
-    def prune(self, X_train, Y_train, X_val, Y_val, M_loss, n_it=10):
-        cprune(self,X_train, Y_train, X_val, Y_val, M_loss, n_iterations=n_it)
+    def prune(self, X_train, Y_train, X_val, Y_val, M_loss, n_it=10, tfit="numba_Fit",tpred="numba_Predict"):
+        cprune(self,X_train, Y_train, X_val, Y_val, M_loss,getattr(self,tfit),getattr(self,tpred), n_iterations=n_it)
 
     #Learning
-    def learn(self, xt, yt, xv, yv, n_iterations=10):
-        return clearn(self, xt, yt, xv, yv, n_iterations=n_iterations)
+    def learn(self, xt, yt, xv, yv, n_iterations=10,tdelta=0.00001,tfit="numba_Fit",tpred="numba_Predict"):
+        return clearn(self, xt, yt, xv, yv,getattr(self,tfit),getattr(self,tpred), n_iterations=n_iterations,delta=tdelta)
 
-    #Predict
-    def pred(self, X_val):
-        #if(len(X_val)<=500):
-        #return spred(self,X_val)
-        #return cPred(self, X_val)
 
-        return numbaPred(self,X_val)
-
-    def predM(self,X_val):
-        return cPred(self, X_val)

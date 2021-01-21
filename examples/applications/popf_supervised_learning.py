@@ -15,21 +15,22 @@ if __name__ == '__main__':
         # Parsing a pre-loaded numpy array
         X, Y = p.parse_loader(txt)
 
+
+
         # Splitting data into training and testing sets
         X_train, X_test, Y_train, Y_test = s.split(
             X, Y, percentage=0.2,percentage2=0.4, random_state=1)
 
 
 
-        print(X_train)
 
         # Creates a SupervisedPOPF instance
-        opf = SSupervisedPOPF(processi=mp.cpu_count(),tagli=tagli
+        opf = SSupervisedPOPF(processi=6,tagli=tagli
                                  ,distance='squared_euclidean',
                                 pre_computed_distance=None)
         #calcolo il tempo
         t1 = time.time()
-        opf.learn(X_train, Y_train,X_test,Y_test,n_iterations=7)
+        opf.learn(X_train, Y_train,X_test,Y_test,n_iterations=4)
 
 
         t2 = time.time()

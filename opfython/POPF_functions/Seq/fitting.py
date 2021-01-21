@@ -32,7 +32,7 @@ def fit(opf, X_train, Y_train, I_train=None):
     opf.subgraph = Subgraph(X_train, Y_train, I=I_train)
 
     # Finding prototypes
-    opf._find_prototypes()
+    opf.seq_Find_Prototypes()
     start = time.time()
 
     # Creating a minimum heap

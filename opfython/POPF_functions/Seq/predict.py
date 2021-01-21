@@ -121,4 +121,4 @@ def predict(opf, X_val, I_val=None):
     logger.info('Data has been predicted.')
     logger.info('Prediction time: %s seconds.', predict_time)
 
-    return preds
+    return preds,1

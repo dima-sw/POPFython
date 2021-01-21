@@ -1,4 +1,8 @@
 """Distance-based metrics.
+
+@Author: Guarosa Gustavo https://github.com/gugarosa/opfython
+
+
 """
 
 import math
@@ -7,6 +11,48 @@ import numpy as np
 
 import opfython.utils.constants as c
 import opfython.utils.decorator as d
+
+
+
+
+def log_squared_euclidean_distance(x, y):
+    """Calculates the log-Squared Euclidean Distance.
+
+    Args:
+        x (np.array): N-dimensional array.
+        y (np.array): N-dimensional array.
+
+    Returns:
+        The Log Squared Euclidean Distance between x and y.
+
+    """
+    dist=0
+
+    for i in range(len(x)):
+        dist+=(x[i]-y[i])*(x[i]-y[i])
+
+    return dist
+    # Calculates the log-Squared Euclidean distance for each dimension
+    #dist = squared_euclidean_distance(x, y)
+
+    #return c.MAX_ARC_WEIGHT * math.log(dist + 1)
+
+def squared_euclidean_distance(x, y):
+    """Calculates the Squared Euclidean Distance.
+
+    Args:
+        x (np.array): N-dimensional array.
+        y (np.array): N-dimensional array.
+
+    Returns:
+        The Squared Euclidean Distance between x and y.
+    """
+
+    # Calculates the Squared Euclidean distance for each dimension
+    dist = (x - y) ** 2
+
+    return np.einsum('i->', dist)
+    #return cdist(x,y)
 
 
 @d.avoid_zero_division
@@ -516,22 +562,7 @@ def log_euclidean_distance(x, y):
     return c.MAX_ARC_WEIGHT * math.log(dist + 1)
 
 
-def log_squared_euclidean_distance(x, y):
-    """Calculates the log-Squared Euclidean Distance.
 
-    Args:
-        x (np.array): N-dimensional array.
-        y (np.array): N-dimensional array.
-
-    Returns:
-        The Log Squared Euclidean Distance between x and y.
-
-    """
-
-    # Calculates the log-Squared Euclidean distance for each dimension
-    dist = squared_euclidean_distance(x, y)
-
-    return c.MAX_ARC_WEIGHT * math.log(dist + 1)
 
 
 def lorentzian_distance(x, y):

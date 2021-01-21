@@ -60,13 +60,13 @@ def fit(opf, X_train, Y_train, I_train=None):
 
 
 
-    # Initializing the timer
+
 
     # Creating a subgraph
     opf.subgraph = Subgraph(X_train, Y_train, I=I_train)
 
     # Finding prototypes
-    opf._find_prototypes()
+    opf.numba_Find_Prototypes(X_train)
 
     # Set il numero di thread da utilizzare
     set_num_threads(opf._processi)

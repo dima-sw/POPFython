@@ -6,7 +6,7 @@ import opfython.math.general as g
 
 logger=log.get_logger(__name__)
 
-def prune(opf, X_train, Y_train, X_val, Y_val,M_loss, n_iterations=10):
+def prune(opf, X_train, Y_train, X_val, Y_val,M_loss,fit,pred, n_iterations=10):
     """
     Args:
         opf: il nostro classificatore
@@ -21,17 +21,17 @@ def prune(opf, X_train, Y_train, X_val, Y_val,M_loss, n_iterations=10):
     logger.info('Pruning classifier ...')
 
     #Primo learning
-    opf.learn(X_train,Y_train,X_val,Y_val,n_iterations=n_iterations)
+    opf.learn(X_train,Y_train,X_val,Y_val,tfit=fit, tpred=pred,n_iterations=n_iterations)
 
     """L2=label P2=predecessore, output dal classificatore"""
-    L2, P2= opf.pred(X_val)
+    L2, P2= pred(X_val)
     acc=g.accuracy(Y_val,L2)
 
     # Prendo il numero di nodi iniziali del grafo
     initial_nodes = opf.subgraph.n_nodes
 
     # Faccio partire il pruring
-    pruringRun(opf, acc, M_loss, n_iterations, X_train, Y_train, X_val, Y_val,P2)
+    pruringRun(opf, acc, M_loss, n_iterations, X_train, Y_train, X_val, Y_val,P2,fit,pred)
 
     # Prendo i nodi a fine pruring
     final_nodes = opf.subgraph.n_nodes
@@ -43,7 +43,7 @@ def prune(opf, X_train, Y_train, X_val, Y_val,M_loss, n_iterations=10):
 
 
 
-def pruringRun(opf, acc, M_loss,n_iterations, X_train, Y_train, X_val, Y_val,P2):
+def pruringRun(opf, acc, M_loss,n_iterations, X_train, Y_train, X_val, Y_val,P2,fit,pred):
     # tmp= accuratezza attuale
     tmp = acc
     # flag serve per tenere traccia se ci sia ancora almeno un nodo non rilevante
@@ -72,9 +72,9 @@ def pruringRun(opf, acc, M_loss,n_iterations, X_train, Y_train, X_val, Y_val,P2)
             flag = True
 
             # Faccio partire un nuovo learning
-            opf.learn(X_train, Y_train, X_val, Y_val, n_iterations=n_iterations)
+            opf.learn(X_train, Y_train, X_val, Y_val,tfit=fit, tpred=pred, n_iterations=n_iterations)
             """L2=label P2=predecessore, output dal classificatore"""
-            L2,P2 = opf.pred(X_val)
+            L2,P2 = pred(X_val)
             # Calcolo l'accuratezza
             tmp = g.accuracy(Y_val, L2)
             logger.info('Current accuracy: %s.', tmp)
