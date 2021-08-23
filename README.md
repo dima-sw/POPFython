@@ -1,6 +1,6 @@
 
 # POPFython
-A Python library for Optimum Path Forest classification algorithms. We used the Numpy library to achieve an extremely efficient implementation of the parallel OPF algorithm, we also used the Cython language that can communicate with Python to have not only another efficient parallel implementation but also a sequential one that is faster than the one already existing. 
+A Python library for Optimum Path Forest classification algorithms. We used the Numpy library to achieve an extremely efficient (fast) implementation of the parallel OPF algorithm (almost as fast as the C implementation), we also used the Cython language that can communicate with Python to have not only another efficient parallel implementation but also a sequential one that is faster than the one already existing. 
 
 
 ## Credits:
