@@ -8,5 +8,7 @@ for l in c:
     data=data
 
 print(data)
+
+
 #c=asarray(([[123],[234]]))
 print(c)
