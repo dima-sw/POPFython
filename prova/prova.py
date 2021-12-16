@@ -2,6 +2,7 @@ class tt:
 
 
     def r(self):
+
         print("ciao")
     def t(self):
         print("oo")
