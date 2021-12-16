@@ -9,7 +9,7 @@ for l in c:
 
 print(data)
 
+print("ciao")
 
-#PROVA
 #c=asarray(([[123],[234]]))
 print(c)
