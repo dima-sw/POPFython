@@ -8,11 +8,7 @@ for l in c:
     data=data
 
 print(data)
-<<<<<<< Updated upstream
 
-
-=======
 #PROVA
->>>>>>> Stashed changes
 #c=asarray(([[123],[234]]))
 print(c)
