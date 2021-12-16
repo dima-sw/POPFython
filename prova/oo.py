@@ -10,7 +10,7 @@ for l in c:
 print(data)
 
 
-print("helloo")
+print("helloa")
 
 #c=asarray(([[123],[234]]))
 print(c)
